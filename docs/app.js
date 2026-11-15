@@ -1,4 +1,4 @@
-import { MEALS, chinaDate, addDays, monday, weekday, shortDate, weekContains, initialSelection, searchMenus, ingredientTags, escapeHtml as esc } from './menu-utils.mjs';
+import { MEALS, chinaDate, addDays, monday, weekday, shortDate, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml as esc } from './menu-utils.mjs';
 
 const $ = id => document.getElementById(id);
 let data, activeWeek, activeDate, view = 'day', activeMeal = 'lunch';
@@ -11,7 +11,14 @@ function ingredients(value) {
   return tags.length ? `<ul class="ingredients" aria-label="食材与克重">${tags.map(tag => `<li class="ingredient-tag">${esc(tag)}</li>`).join('')}</ul>` : '<p class="ingredient-empty">官网未提供食材信息</p>';
 }
 function dishes(items) {
-  return `<ul class="dish-list">${items.map((dish, i) => `<li><details><summary><span class="dish-num">${String(i + 1).padStart(2, '0')}</span><span class="dish-name">${esc(dish.name)}</span></summary>${ingredients(dish.ingredients)}</details></li>`).join('')}</ul>`;
+  return `<ul class="dish-list">${items.map((dish, i) => `<li><details><summary><span class="dish-num">${String(i + 1).padStart(2, '0')}</span><span class="dish-name">${esc(dish.name)}</span></summary>${dish.ingredientNote ? `<p class="ingredient-note">${esc(dish.ingredientNote)}</p>` : ''}${ingredients(dish.ingredients)}</details></li>`).join('')}</ul>`;
+}
+function groupedDishes(meal, items) {
+  if (!items.length) return '<p class="week-empty">官网未提供这餐的菜单。</p>';
+  if (meal === 'breakfast') return dishes(items);
+  const groups = mealGroups(meal, items);
+  if (groups[0]?.key === 'unclassified') return `<p class="category-note">按官网顺序显示，分类待确认。</p>${dishes(items)}`;
+  return `<div class="meal-groups">${groups.map(group => `<section class="dish-group ${group.key}" aria-label="${group.title}${group.rule ? ` · ${group.rule}` : ''}"><div class="group-heading"><h4>${group.title}</h4>${group.rule ? `<span class="choice-rule">${group.rule}</span>` : ''}${group.key === 'specialty' ? `<span class="group-count">${group.items.length}种</span>` : ''}</div>${dishes(group.items)}</section>`).join('')}</div>`;
 }
 function safeSource(url) {
   try { const u = new URL(url); return u.protocol === 'https:' && ['www.nhfls.com.cn', 'nhfls.com.cn'].includes(u.hostname) ? u.href : 'https://www.nhfls.com.cn/mzsp/list.htm'; }
@@ -62,18 +69,18 @@ function renderDay() {
   }
   $('meal-cards').innerHTML = Object.entries(MEALS).map(([key, meal]) => {
     const items = day.meals[key] || [];
-    return `<article class="meal-card ${key}"><div class="meal-head"><span class="meal-symbol" aria-hidden="true">${meal.icon}</span><div><h3>${meal.name}</h3><small>${meal.en}</small></div><span class="meal-count">${items.length} 道选择</span></div>${items.length ? dishes(items) : '<p class="week-empty">官网未提供这餐的菜单。</p>'}</article>`;
+    return `<article class="meal-card ${key}"><div class="meal-head"><span class="meal-symbol" aria-hidden="true">${meal.icon}</span><div><h3>${meal.name}</h3><small>${meal.en}</small></div><span class="meal-count">${key === 'breakfast' ? `${items.length} 道选择` : '套餐 / 特色餐'}</span></div>${groupedDishes(key, items)}</article>`;
   }).join('');
 }
 function renderWeek() {
   $('week-view').querySelector('h2').textContent = `${activeWeek.label} · ${MEALS[activeMeal].name}`;
-  $('week-grid').innerHTML = activeWeek.days.map(day => `<article class="week-day"><h3>${weekday(day.date)}<span>${shortDate(day.date)}</span></h3>${day.meals[activeMeal]?.length ? dishes(day.meals[activeMeal]) : '<p class="week-empty">这餐尚无菜单</p>'}</article>`).join('');
+  $('week-grid').innerHTML = activeWeek.days.map(day => `<article class="week-day"><h3>${weekday(day.date)}<span>${shortDate(day.date)}</span></h3>${groupedDishes(activeMeal, day.meals[activeMeal] || [])}</article>`).join('');
 }
 function renderSearch() {
   const query = $('search-input').value.trim();
   if (!query) { $('search-results').innerHTML = '<p class="search-count">输入菜名或食材，看看它哪天出现。</p>'; return; }
   const hits = searchMenus(data.weeks, query);
-  $('search-results').innerHTML = `<p class="search-count">找到 ${hits.length} 条结果${hits.length > 100 ? '，先显示最近的 100 条' : ''}</p>` + (hits.length ? hits.slice(0, 100).map(hit => `<article class="search-hit"><div><h3>${esc(hit.name)}</h3><p>${esc(hit.date)} · ${weekday(hit.date)} · ${MEALS[hit.meal].name}</p>${ingredients(hit.ingredients)}</div><button data-jump-week="${hit.week}" data-jump-date="${hit.date}">查看当天 →</button></article>`).join('') : '<div class="empty"><h3>还没找到这道菜</h3><p>试试更短的关键词，或换一种食材。</p></div>');
+  $('search-results').innerHTML = `<p class="search-count">找到 ${hits.length} 条结果${hits.length > 100 ? '，先显示最近的 100 条' : ''}</p>` + (hits.length ? hits.slice(0, 100).map(hit => `<article class="search-hit"><div><h3>${esc(hit.name)}</h3><p>${esc(hit.date)} · ${weekday(hit.date)} · ${MEALS[hit.meal].name}${hit.category !== MEALS[hit.meal].name ? ` · ${esc(hit.category)}` : ''}</p>${hit.ingredientNote ? `<p class="ingredient-note">${esc(hit.ingredientNote)}</p>` : ''}${ingredients(hit.ingredients)}</div><button data-jump-week="${hit.week}" data-jump-date="${hit.date}">查看当天 →</button></article>`).join('') : '<div class="empty"><h3>还没找到这道菜</h3><p>试试更短的关键词，或换一种食材。</p></div>');
 }
 function initialize() {
   if (!data || data.schemaVersion !== 1 || !Array.isArray(data.weeks) || !data.weeks.length) throw new Error('菜单数据为空或版本不支持');
