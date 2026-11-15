@@ -21,3 +21,15 @@ export function searchMenus(weeks, query) {
   return weeks.flatMap(week => week.days.flatMap(day => Object.keys(MEALS).flatMap(meal => (day.meals[meal] || []).filter(d => `${d.name} ${d.ingredients || ''}`.toLocaleLowerCase('zh-CN').includes(q)).map(d => ({ ...d, date: day.date, meal, week: week.id }))))).sort((a, b) => b.date.localeCompare(a.date));
 }
 export function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+export function ingredientTags(value) {
+  const text = String(value || '').trim()
+    .replace(/(\d+(?:\.\d+)?)\s*(kg|g|千克|克|ml|毫升)/gi, '$1$2')
+    .replace(/(\d+(?:\.\d+)?(?:kg|g|千克|克|ml|毫升))(?=[\u3400-\u9fff\d])/gi, '$1 ');
+  const tags = [];
+  const weight = /^\d+(?:\.\d+)?(?:kg|g|千克|克|ml|毫升)$/i;
+  for (const part of text.split(/[\s,，;；、]+/).filter(Boolean)) {
+    if (weight.test(part) && tags.length && !/\d/.test(tags.at(-1))) tags[tags.length - 1] += ` ${part}`;
+    else tags.push(part);
+  }
+  return tags;
+}
