@@ -1,0 +1,12 @@
+[Unit]
+Description=Update NHFLS school menus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=menu
+WorkingDirectory=/opt/nhfls_menu
+ExecStart=/bin/bash /opt/nhfls_menu/scripts/sync.sh
+TimeoutStartSec=15min
+UMask=0022

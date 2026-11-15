@@ -1,5 +1,143 @@
 # 河外饭点 · NHFLS Menu
 
-南京河西外国语学校中学部菜谱查看器。适配手机与电脑，使用 GitHub Pages 托管，由服务器定时同步学校官网公开食谱。
+南京河西外国语学校**中学部**菜谱查看器。手机单列显示三餐，电脑并排显示；提供每日菜单、整周总览、菜名与食材搜索、官网原文入口和打印。
 
-非学校官方应用，菜单以学校实际供餐为准。
+这是学生制作的非官方应用，实际供餐以学校食堂为准。
+
+## 架构
+
+- `docs/`：无需构建的静态网站，HTML / CSS / JavaScript，所有资源本地托管，没有外部字体、CDN 或浏览器抓取代理。
+- `docs/data/menus.json`：菜单及来源记录，也是网站直接读取的数据。
+- `scripts/fetch_menu.py`：Python 3.10+ 标准库抓取器，无 pip 依赖。处理合并单元格、过滤小学部、校验日期和餐次，完整解析成功后才原子替换数据；无变化时不改时间戳。
+- `scripts/sync.sh`：服务器定时执行，拉取代码、抓菜单、有变化才提交，随后推送；带文件锁，失败退出，工作区脏或分支不对时停止。
+- `deploy/`：可选的 systemd 定时任务。
+
+菜单只从[学校官网每周菜谱](https://www.nhfls.com.cn/mzsp/list.htm)同步，不需要学校账号。服务器更新数据，访客只访问 GitHub Pages。
+
+## 开启 GitHub Pages
+
+1. 打开本仓库 **Settings → Pages**。
+2. 在 **Build and deployment → Source** 选择 **Deploy from a branch**。
+3. 分支选择 **main**，目录选择 **/docs**，点击 **Save**。
+4. 等待仓库 Actions 中的 Pages 发布完成。默认地址为 `https://qeshgff.github.io/nhfls_menu/`。
+
+不需要额外的自定义 Actions 文件或 Node 构建步骤。
+
+### 绑定自己的域名
+
+先在 Pages 的 **Custom domain** 中填入域名，如 `menu.example.com`，保存后在 DNS 添加：
+
+| 类型 | 名称 | 目标 |
+| --- | --- | --- |
+| CNAME | menu | qeshgff.github.io |
+
+目标不要带仓库名称。域名验证成功后开启 **Enforce HTTPS**。建议在 GitHub 账号的 Pages 设置中验证域名归属。GitHub Pages 在大陆的访问速度需用自己的网络实测；自定义域名不会改变源站线路。
+
+## 本地预览
+
+```bash
+git clone https://github.com/qeshgff/nhfls_menu.git
+cd nhfls_menu
+python3 -m http.server 8080 --directory docs
+```
+
+打开 `http://localhost:8080`。请通过 HTTP 访问；直接双击 HTML 的 `file://` 方式无法正常加载 JSON 和 ES 模块。
+
+## 服务器定时同步
+
+在专用检出目录运行，不要和日常开发共用有未提交改动的工作区。以下命令以 Debian / Ubuntu 为例：
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git python3 util-linux openssh-client
+```
+
+用运行定时任务的普通用户克隆仓库，并设置提交身份：
+
+```bash
+git clone https://github.com/qeshgff/nhfls_menu.git
+cd nhfls_menu
+git config user.name 'Menu sync'
+git config user.email 'menu-sync@users.noreply.github.com'
+```
+
+### 配置单仓库 SSH Deploy Key
+
+如果服务器已有可写 GitHub 的 SSH 身份，可以复用对应身份。否则给此项目单独生成密钥，将**公钥**加到仓库 **Settings → Deploy keys → Add deploy key**，启用 **Allow write access**。私钥仅留在服务器上，不要提交到仓库，也不需要发给他人。
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/nhfls_menu -C nhfls-menu-sync
+cat ~/.ssh/nhfls_menu.pub
+```
+
+给 `~/.ssh/config` 增加项目别名：
+
+```sshconfig
+Host github-nhfls-menu
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/nhfls_menu
+    IdentitiesOnly yes
+```
+
+首次连接按 GitHub 官方公布的指纹核验主机身份。定时任务不支持交互式输入密码；密钥应能在任务用户的运行环境中使用。
+
+```bash
+ssh -T github-nhfls-menu
+git remote set-url origin git@github-nhfls-menu:qeshgff/nhfls_menu.git
+bash scripts/sync.sh
+```
+
+GitHub 的 `ssh -T` 在认证成功后仍可能以退出码 1 结束，以返回的认证成功文字为准。
+
+### 使用 cron（简单方式）
+
+在**同一个运行用户**下执行 `crontab -e`，加入以下内容，把路径换成实际克隆目录：
+
+```cron
+17 */4 * * * /bin/bash /绝对路径/nhfls_menu/scripts/sync.sh >> /绝对路径/nhfls_menu-sync.log 2>&1
+```
+
+每四小时检查一次，时间按服务器时区。没有新菜单不会产生重复提交。日志放仓库外，并按需轮转。
+
+### 使用 systemd（可选，与 cron 二选一）
+
+编辑 `deploy/nhfls-menu.service` 的 `User`、`WorkingDirectory` 和 `ExecStart`，指向现有普通用户和克隆路径。该用户必须拥有检出目录和上述 SSH 身份。再安装服务：
+
+```bash
+sudo cp deploy/nhfls-menu.service deploy/nhfls-menu.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now nhfls-menu.timer
+systemctl list-timers nhfls-menu.timer
+journalctl -u nhfls-menu.service -n 50
+```
+
+定时器明确使用北京时间，每四小时检查一次，并加最多十分钟的随机延迟。只安装模板文件并不会在未配置的远程服务器上自动生效。
+
+## 手动抓取与验证
+
+```bash
+python3 scripts/fetch_menu.py
+python3 scripts/fetch_menu.py --max-weeks 1
+python3 -m unittest discover -s tests -v
+node --test tests/menu-utils.test.mjs
+```
+
+`--max-weeks` 默认 4，检查列表中最近几周，保留已收录历史。任何待检查页面下载或解析失败，本次更新全部停止，保留原数据。若官网表格结构变化，需要修复解析器，不会用空数据覆盖旧菜单。
+
+离线解析测试：
+
+```bash
+python3 scripts/fetch_menu.py \
+  --html tests/fixtures/reconstructed-week12.html \
+  --url https://www.nhfls.com.cn/2026/1113/c88a4916/page.htm \
+  --output /tmp/nhfls-menu-test.json
+```
+
+## 初始数据与验证范围
+
+初始收录 2026 年 11 月 16—20 日中学部第 12 周菜单，共 5 天、155 项选择，来自开发时已读取的[官网公开表格](https://www.nhfls.com.cn/2026/1113/c88a4916/page.htm)。菜名、食材和原表中的个别不一致按原文保留；不将原料克重当作实际取餐重量或营养计算。
+
+`tests/fixtures/reconstructed-week12.html` 是根据该表重建的解析测试夹具，**不是原始网页下载存档**。当前开发环境随后连接学校官网超时，因此初版解析器的实时下载和真实 HTML 结构仍需在你的服务器上运行验证。离线测试覆盖合并单元格、跨年、短周、缺餐/缺日期拒绝更新、失败保留旧数据和无变化不重复写入。
+
+用户日期按 `Asia/Shanghai` 计算。周末、未发布日期和旧数据会显示明确状态，不把旧菜单标成今天。尚未收录历史时，搜索仅覆盖已收录的数据。

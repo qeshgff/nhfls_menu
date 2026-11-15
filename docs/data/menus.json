@@ -1,0 +1,694 @@
+{
+  "schemaVersion": 1,
+  "school": "南京河西外国语学校",
+  "department": "中学部",
+  "updatedAt": "2026-11-15T14:15:41+00:00",
+  "weeks": [
+    {
+      "id": "2026-11-16",
+      "label": "第12周",
+      "title": "南京河西外国语学校中学部2026-2027学年第一学期第12周食谱2026.11.16-11.20",
+      "start": "2026-11-16",
+      "end": "2026-11-20",
+      "source": "https://www.nhfls.com.cn/2026/1113/c88a4916/page.htm",
+      "publishedAt": "2026-11-13",
+      "days": [
+        {
+          "date": "2026-11-16",
+          "meals": {
+            "breakfast": [
+              {
+                "name": "鲜肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "青菜包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "烧麦",
+                "ingredients": "100g"
+              },
+              {
+                "name": "阳春面",
+                "ingredients": "100g"
+              },
+              {
+                "name": "玉米/南瓜",
+                "ingredients": "60g"
+              },
+              {
+                "name": "五香蛋",
+                "ingredients": "100g"
+              },
+              {
+                "name": "奶黄包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "青椒鸡蛋饼",
+                "ingredients": "100g"
+              },
+              {
+                "name": "荞麦馒头",
+                "ingredients": "100g"
+              },
+              {
+                "name": "小米粥",
+                "ingredients": "200g"
+              },
+              {
+                "name": "鲜牛奶/酸奶",
+                "ingredients": "酸奶150g 鲜奶240g"
+              }
+            ],
+            "lunch": [
+              {
+                "name": "新疆大盘鸡",
+                "ingredients": "鸡肉120g 土豆30g 青椒5g 红椒5g"
+              },
+              {
+                "name": "红烧肉圆",
+                "ingredients": "肉沫100g"
+              },
+              {
+                "name": "酸汤牛腩",
+                "ingredients": "土豆30g 牛腩110g"
+              },
+              {
+                "name": "花菜炒肉丝",
+                "ingredients": "花菜100g 肉丝30g"
+              },
+              {
+                "name": "茭白胡萝卜炒肉丝",
+                "ingredients": "茭白100g 胡萝卜10g 肉丝30g"
+              },
+              {
+                "name": "卤素鸡",
+                "ingredients": "素鸡100g"
+              },
+              {
+                "name": "香菇青菜",
+                "ingredients": "香菇5g 青菜110g"
+              },
+              {
+                "name": "滑蛋牛肉盖面",
+                "ingredients": "牛肉110g 鸡蛋60g 面条120g"
+              },
+              {
+                "name": "萝卜肉丝汤",
+                "ingredients": "萝卜30g 肉丝30g"
+              }
+            ],
+            "dinner": [
+              {
+                "name": "避风塘大虾",
+                "ingredients": "虾肉110g"
+              },
+              {
+                "name": "蜜汁红烧肉",
+                "ingredients": "五花肉110g"
+              },
+              {
+                "name": "糖醋排骨",
+                "ingredients": "排骨110g"
+              },
+              {
+                "name": "干锅包菜",
+                "ingredients": "包菜100g 肉片30g"
+              },
+              {
+                "name": "干锅千页豆腐",
+                "ingredients": "千页豆腐100g 洋葱30g"
+              },
+              {
+                "name": "虎皮青椒",
+                "ingredients": "青椒110g"
+              },
+              {
+                "name": "青椒土豆丝",
+                "ingredients": "土豆110g"
+              },
+              {
+                "name": "汉堡",
+                "ingredients": "110g"
+              },
+              {
+                "name": "虾仁馄饨",
+                "ingredients": "馄饨110g"
+              },
+              {
+                "name": "蚝油肉片盖浇饭",
+                "ingredients": "肉片110g 洋葱30g"
+              },
+              {
+                "name": "紫菜汤",
+                "ingredients": "紫菜30g 鸡蛋30g"
+              }
+            ]
+          }
+        },
+        {
+          "date": "2026-11-17",
+          "meals": {
+            "breakfast": [
+              {
+                "name": "粉丝包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "鲜肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "咖喱牛肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "玉米/红薯",
+                "ingredients": "100g"
+              },
+              {
+                "name": "白水蛋",
+                "ingredients": "60g"
+              },
+              {
+                "name": "红糖馒头",
+                "ingredients": "100g"
+              },
+              {
+                "name": "梅干菜肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "手抓饼",
+                "ingredients": "100g"
+              },
+              {
+                "name": "油条",
+                "ingredients": "100g"
+              },
+              {
+                "name": "黑米粥",
+                "ingredients": "200g"
+              },
+              {
+                "name": "鲜牛奶/酸奶",
+                "ingredients": "酸奶150g 鲜奶240g"
+              }
+            ],
+            "lunch": [
+              {
+                "name": "椒盐羊排",
+                "ingredients": "羊肉110g 年糕30g 洋葱10g 青椒5g 红椒5g"
+              },
+              {
+                "name": "酱爆鸡丁",
+                "ingredients": "莴笋30g 鸡丁110g"
+              },
+              {
+                "name": "清汤虾滑",
+                "ingredients": "虾滑110g"
+              },
+              {
+                "name": "鱼香茄子",
+                "ingredients": "茄子100g 肉沫30g"
+              },
+              {
+                "name": "蒜蓉肉沫蒸金针菇",
+                "ingredients": "金针菇100g 肉沫30g"
+              },
+              {
+                "name": "玉米冬瓜",
+                "ingredients": "玉米30g 冬瓜100g"
+              },
+              {
+                "name": "虾皮炒油麦菜",
+                "ingredients": "油麦菜110g"
+              },
+              {
+                "name": "雪菜肉丝鸡蛋面",
+                "ingredients": "雪菜40g 肉丝60g 鸡蛋50g 面条150g"
+              },
+              {
+                "name": "菠菜汤",
+                "ingredients": "菠菜30g 鸡蛋30g"
+              }
+            ],
+            "dinner": [
+              {
+                "name": "沸腾肉片",
+                "ingredients": "梅花肉110g 土豆30g"
+              },
+              {
+                "name": "黄金鸡腿",
+                "ingredients": "鸡肉110g"
+              },
+              {
+                "name": "莴笋烧肉",
+                "ingredients": "莴笋30g 五花肉110g"
+              },
+              {
+                "name": "小白菜皮肚炒肉丝",
+                "ingredients": "小白菜100g 肉丝30g"
+              },
+              {
+                "name": "洋葱炒鸡蛋",
+                "ingredients": "洋葱100g 鸡蛋60g 木耳1g"
+              },
+              {
+                "name": "蒜泥生菜",
+                "ingredients": "生菜110g"
+              },
+              {
+                "name": "肉汁萝卜",
+                "ingredients": "萝卜110g"
+              },
+              {
+                "name": "松子肉丁烧麦",
+                "ingredients": "110g"
+              },
+              {
+                "name": "卤肉饭",
+                "ingredients": "五花肉120g 香菇30g"
+              },
+              {
+                "name": "酸菜鸡柳米线",
+                "ingredients": "鸡柳120g 米线120g 金针菇30g"
+              },
+              {
+                "name": "青菜肉丝汤",
+                "ingredients": "青菜30g 肉丝30g"
+              }
+            ]
+          }
+        },
+        {
+          "date": "2026-11-18",
+          "meals": {
+            "breakfast": [
+              {
+                "name": "雪菜包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "鲜肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "酱香饼",
+                "ingredients": "100g"
+              },
+              {
+                "name": "青椒肉丝面",
+                "ingredients": "100g"
+              },
+              {
+                "name": "玉米/南瓜",
+                "ingredients": "60g"
+              },
+              {
+                "name": "五香蛋",
+                "ingredients": "100g"
+              },
+              {
+                "name": "花卷/白馒头",
+                "ingredients": "100g"
+              },
+              {
+                "name": "香酥烧饼",
+                "ingredients": "100g"
+              },
+              {
+                "name": "糖三角",
+                "ingredients": "100g"
+              },
+              {
+                "name": "酸辣汤",
+                "ingredients": "200g"
+              },
+              {
+                "name": "鲜牛奶/酸奶",
+                "ingredients": "酸奶150g 鲜奶240g"
+              }
+            ],
+            "lunch": [
+              {
+                "name": "蒜苗炒牛腱子",
+                "ingredients": "蒜苗30g 牛腱子110g"
+              },
+              {
+                "name": "鹌鹑蛋烧肉",
+                "ingredients": "鹌鹑蛋30g 五花肉110g"
+              },
+              {
+                "name": "糖醋龙利鱼",
+                "ingredients": "鱼肉110g"
+              },
+              {
+                "name": "蒜蓉蒸冬瓜",
+                "ingredients": "冬瓜110g 肉沫30g"
+              },
+              {
+                "name": "鱼香肉丝",
+                "ingredients": "笋丝100g 木耳1g 肉丝30g"
+              },
+              {
+                "name": "干锅小豆芽",
+                "ingredients": "豆芽110g"
+              },
+              {
+                "name": "糖醋包菜",
+                "ingredients": "包菜110g"
+              },
+              {
+                "name": "淮南牛肉汤",
+                "ingredients": "肉沫110g 花生米30g 牛肉110g 干丝30g 粉丝120g"
+              },
+              {
+                "name": "西红柿汤",
+                "ingredients": "西红柿30g 鸡蛋30g"
+              }
+            ],
+            "dinner": [
+              {
+                "name": "回锅肉",
+                "ingredients": "五花肉110g 洋葱30g"
+              },
+              {
+                "name": "炒牛肉粒",
+                "ingredients": "牛肉110g 虾仁10g 腰果5g"
+              },
+              {
+                "name": "黄豆烧猪手",
+                "ingredients": "黄豆10g 猪手110g"
+              },
+              {
+                "name": "西兰花炒方腿",
+                "ingredients": "西兰花100g 方腿30g"
+              },
+              {
+                "name": "肉沫蒸鸡蛋",
+                "ingredients": "肉沫30g 鸡蛋90g"
+              },
+              {
+                "name": "酸辣海带丝",
+                "ingredients": "海带110g"
+              },
+              {
+                "name": "蒜泥菠菜",
+                "ingredients": "菠菜110g"
+              },
+              {
+                "name": "火腿面包",
+                "ingredients": "110g"
+              },
+              {
+                "name": "土豆烧肉盖浇饭",
+                "ingredients": "土豆30g 猪肉120g"
+              },
+              {
+                "name": "水饺",
+                "ingredients": "娃娃菜100g 猪肉60g"
+              },
+              {
+                "name": "黄豆芽豆腐果汤",
+                "ingredients": "黄豆芽30g 豆腐果30g"
+              }
+            ]
+          }
+        },
+        {
+          "date": "2026-11-19",
+          "meals": {
+            "breakfast": [
+              {
+                "name": "鲜肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "青菜包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "奥尔良鸡丁包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "玉米/红薯",
+                "ingredients": "100g"
+              },
+              {
+                "name": "紫薯卷",
+                "ingredients": "100g"
+              },
+              {
+                "name": "糍粑",
+                "ingredients": "100g"
+              },
+              {
+                "name": "阳春面",
+                "ingredients": "100g"
+              },
+              {
+                "name": "五香蛋",
+                "ingredients": "60g"
+              },
+              {
+                "name": "生煎包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "红豆粥",
+                "ingredients": "200g"
+              },
+              {
+                "name": "鲜牛奶/酸奶",
+                "ingredients": "酸奶150g 鲜奶240g"
+              }
+            ],
+            "lunch": [
+              {
+                "name": "糖醋大虾",
+                "ingredients": "虾肉110g"
+              },
+              {
+                "name": "东坡肉",
+                "ingredients": "五花肉110g"
+              },
+              {
+                "name": "口水鸡",
+                "ingredients": "鸡肉120g"
+              },
+              {
+                "name": "西红柿炒蛋",
+                "ingredients": "西红柿110g 鸡蛋60g"
+              },
+              {
+                "name": "大煮干丝",
+                "ingredients": "干丝90g 方腿10g 木耳5g 肉丝30g"
+              },
+              {
+                "name": "蒜蓉蒸娃娃菜",
+                "ingredients": "娃娃菜100g 粉丝10g"
+              },
+              {
+                "name": "炒土豆丝",
+                "ingredients": "土豆110g"
+              },
+              {
+                "name": "排骨面、大肉面",
+                "ingredients": "排骨150g 五花肉150g 面条150g"
+              },
+              {
+                "name": "山药老母鸡汤",
+                "ingredients": "山药30g 鸡肉30g"
+              }
+            ],
+            "dinner": [
+              {
+                "name": "熏鱼",
+                "ingredients": "鱼肉110g"
+              },
+              {
+                "name": "牛肉烧干豆腐（新菜）",
+                "ingredients": "牛肉110g 豆腐结30g"
+              },
+              {
+                "name": "盐酥鸡",
+                "ingredients": "鸡肉120g"
+              },
+              {
+                "name": "芹菜炒肉丝",
+                "ingredients": "芹菜100g 肉丝30g"
+              },
+              {
+                "name": "青椒炒鸡蛋",
+                "ingredients": "青椒100g 鸡蛋60g"
+              },
+              {
+                "name": "美极杏鲍菇",
+                "ingredients": "杏鲍菇110g"
+              },
+              {
+                "name": "蒜泥青菜",
+                "ingredients": "青菜110g"
+              },
+              {
+                "name": "巧克力蛋糕",
+                "ingredients": "110g"
+              },
+              {
+                "name": "黄焖鸡米饭",
+                "ingredients": "鸡肉120g 土豆30g 香菇30g"
+              },
+              {
+                "name": "咖喱鱼丸米线",
+                "ingredients": "鱼丸110g 洋葱 土豆20g 胡萝卜20g10g 米线120g"
+              },
+              {
+                "name": "西红柿汤",
+                "ingredients": "西红柿30g 鸡蛋30g"
+              }
+            ]
+          }
+        },
+        {
+          "date": "2026-11-20",
+          "meals": {
+            "breakfast": [
+              {
+                "name": "煎饺",
+                "ingredients": "100g"
+              },
+              {
+                "name": "大肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "青菜包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "粉丝包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "阳春面",
+                "ingredients": "60g"
+              },
+              {
+                "name": "豆角酱肉包",
+                "ingredients": "100g"
+              },
+              {
+                "name": "红糖发糕",
+                "ingredients": "100g"
+              },
+              {
+                "name": "玉米/南瓜",
+                "ingredients": "100g"
+              },
+              {
+                "name": "花式馒头",
+                "ingredients": "100g"
+              },
+              {
+                "name": "皮蛋瘦肉粥",
+                "ingredients": "200g"
+              },
+              {
+                "name": "鲜牛奶/酸奶",
+                "ingredients": "酸奶150g 鲜奶240g"
+              }
+            ],
+            "lunch": [
+              {
+                "name": "六合头道菜",
+                "ingredients": "肉圆30g 香菇丸30g 鹌鹑蛋30g 皮肚10g 方腿10g"
+              },
+              {
+                "name": "年糕烧排骨",
+                "ingredients": "排骨110g"
+              },
+              {
+                "name": "红烧鸡块",
+                "ingredients": "鸡肉120g"
+              },
+              {
+                "name": "青椒鸡蛋炒绿豆芽",
+                "ingredients": "青椒10g 绿豆芽100g 鸡蛋30g 方腿10g"
+              },
+              {
+                "name": "豇豆炒肉丝",
+                "ingredients": "豇豆100g 肉丝30g"
+              },
+              {
+                "name": "孜然面筋",
+                "ingredients": "面筋110g 青椒30g"
+              },
+              {
+                "name": "豉油广东菜心",
+                "ingredients": "菜心110g"
+              },
+              {
+                "name": "排骨面、大肉面",
+                "ingredients": "排骨150g 五花肉150g 面条150g"
+              },
+              {
+                "name": "冬瓜海带汤",
+                "ingredients": "冬瓜30g 海带10g 肉丝30g"
+              }
+            ],
+            "dinner": [
+              {
+                "name": "茶树菇烧鸭",
+                "ingredients": "茶树菇30g 鸭肉110g"
+              },
+              {
+                "name": "面拖大排",
+                "ingredients": "猪肉110g"
+              },
+              {
+                "name": "胡萝卜烧羊肉",
+                "ingredients": "白萝卜30g 羊肉110g"
+              },
+              {
+                "name": "黄瓜木耳炒肉丝",
+                "ingredients": "黄瓜100g 木耳1g 肉丝30g"
+              },
+              {
+                "name": "淮阳小炒",
+                "ingredients": "韭菜90g 鸡蛋60g 粉丝10g"
+              },
+              {
+                "name": "炒三丝",
+                "ingredients": "土豆100g 胡萝卜10g 红椒10g"
+              },
+              {
+                "name": "蒜泥小白菜",
+                "ingredients": "小白菜110g"
+              },
+              {
+                "name": "鸡肉卷",
+                "ingredients": "110g"
+              },
+              {
+                "name": "三鲜炒河粉",
+                "ingredients": "面条120g 菜秧30g 绿豆芽30g 木耳1g 鸡蛋30g"
+              },
+              {
+                "name": "重庆小面",
+                "ingredients": "肉沫110g 花生米5g 面条150g"
+              },
+              {
+                "name": "萝卜汤",
+                "ingredients": "萝卜30g 鸡蛋30g"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
