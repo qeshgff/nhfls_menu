@@ -10,6 +10,7 @@ on:
     paths:
       - .github/workflows/backfill-semester.yml
       - scripts/backfill_semester.py
+      - scripts/curated/**
 permissions:
   contents: write
 concurrency:

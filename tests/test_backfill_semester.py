@@ -42,3 +42,21 @@ class BackfillTests(unittest.TestCase):
         self.assertEqual(backfill.semester_key('中学部2026-2027学年第一学期第第7周'), (2026, 1))
         self.assertEqual(backfill.semester_key('中学部2025—2026学年第二学期'), (2025, 2))
         self.assertIsNone(backfill.semester_key('中学部2026-2028学年第一学期'))
+
+class ImageMenuTests(unittest.TestCase):
+    def test_curated_image_requires_exact_source_and_hash(self):
+        import json
+        from unittest.mock import patch
+        record = json.loads((ROOT / 'scripts/curated/2026-10-08.json').read_text())
+        html = f'<img original-src="{record["imageUrl"]}">'
+        class Digest:
+            def hexdigest(self): return record['sha256']
+        with patch.object(backfill, 'read_image', return_value=b'official image'), patch.object(backfill.hashlib, 'sha256', return_value=Digest()):
+            week = backfill.parse_or_curated(html, record['week']['source'], record['week']['title'])
+            self.assertEqual(len(week['days']), 3)
+            self.assertEqual(sum(len(v) for day in week['days'] for v in day['meals'].values()), 90)
+        with patch.object(backfill, 'read_image', return_value=b'changed image'):
+            with self.assertRaisesRegex(ValueError, '图片已变化'):
+                backfill.parse_or_curated(html, record['week']['source'], record['week']['title'])
+        with self.assertRaisesRegex(ValueError, '来源与官网不一致'):
+            backfill.parse_or_curated('<img src="/other.png">', record['week']['source'], record['week']['title'])

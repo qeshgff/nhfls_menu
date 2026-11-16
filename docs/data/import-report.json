@@ -1,6 +1,6 @@
 {
   "semester": "2026-2027-1",
-  "checkedAt": "2026-11-16T14:49:27+00:00",
+  "checkedAt": "2026-11-16T14:52:07+00:00",
   "catalogComplete": true,
   "catalogPages": 2,
   "discovered": [
@@ -97,6 +97,12 @@
       "source": "https://www.nhfls.com.cn/2026/0928/c88a4890/page.htm"
     },
     {
+      "id": "2026-10-08",
+      "label": "第6周",
+      "days": 3,
+      "source": "https://www.nhfls.com.cn/2026/1006/c88a4893/page.htm"
+    },
+    {
       "id": "2026-10-12",
       "label": "第7周",
       "days": 5,
@@ -133,11 +139,5 @@
       "source": "https://www.nhfls.com.cn/2026/1113/c88a4916/page.htm"
     }
   ],
-  "failed": [
-    {
-      "url": "https://www.nhfls.com.cn/2026/1006/c88a4893/page.htm",
-      "title": "南京河西外国语学校中学部2026-2027学年第一学期第6周食谱2026.10.8-10.10",
-      "error": "菜单日期列缺失，保留旧数据"
-    }
-  ]
+  "failed": []
 }
