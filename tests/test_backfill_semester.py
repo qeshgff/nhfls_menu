@@ -18,7 +18,7 @@ class BackfillTests(unittest.TestCase):
     def test_multiple_pages_stop_at_previous_semester(self):
         pages = {
             backfill.INDEX: link(2026, '一', 12, '2026.11.16-11.20') + '<a class="next" href="/mzsp/list2.htm">下一页</a>',
-            'https://www.nhfls.com.cn/mzsp/list2.htm': link(2026, '一', 1, '2026.9.1-9.4') + link(2025, '二', 20, '2026.6.29-7.3') + '<a class="next" href="/mzsp/list3.htm">下一页</a>',
+            'https://www.nhfls.com.cn/mzsp/list2.htm': link(2026, '一', 1, '2026.9.1-9.4') + link(2025, '二', 20, '2026.6.29-7.3').replace('学年', '') + '<a class="next" href="/mzsp/list3.htm">下一页</a>',
         }
         links, count = backfill.collect_links((2026, 1), pages.__getitem__)
         self.assertEqual(count, 2)

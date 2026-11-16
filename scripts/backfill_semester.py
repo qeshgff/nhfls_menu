@@ -13,7 +13,7 @@ from fetch_menu import Document, INDEX, ROOT, clean, discover, download, parse_m
 
 
 def semester_key(title):
-    match = re.search(r'(20\d{2})\s*[-—–]\s*(20\d{2})\s*学年\s*第?\s*([一二12])\s*学期', title)
+    match = re.search(r'(20\d{2})\s*[-—–]\s*(20\d{2})\s*(?:学年)?\s*第?\s*([一二12])\s*学期', title)
     if not match:
         return None
     first, second, term = match.groups()

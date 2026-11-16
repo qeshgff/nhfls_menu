@@ -25,7 +25,7 @@
 3. 分支选择 **main**，目录选择 **/docs**，点击 **Save**。
 4. 等待仓库 Actions 中的 Pages 发布完成。默认地址为 `https://qeshgff.github.io/nhfls_menu/`。
 
-不需要额外的自定义 Actions 文件或 Node 构建步骤。
+Pages 无需 Node 构建步骤。另有独立的手动学期补录任务，不影响分支发布方式。
 
 ### 绑定自己的域名
 
@@ -128,6 +128,18 @@ node --test tests/menu-utils.test.mjs
 ```
 
 `--max-weeks` 默认 4，检查列表中最近几周，保留已收录历史。任何待检查页面下载或解析失败，本次更新全部停止，保留原数据。若官网表格结构变化，需要修复解析器，不会用空数据覆盖旧菜单。
+
+### 补录整个学期
+
+```bash
+python3 scripts/backfill_semester.py --semester 2026-2027-1
+```
+
+学期格式为“起始年-结束年-学期序号”。程序翻页读取官网目录，只导入指定学期的中学部食谱，跨入更早学期后停止。完整解析的周菜单会合并到已有数据，不删除历史；失败周不会替换已有内容。
+
+核对 `docs/data/import-report.json`：`catalogComplete` 表示目录是否遍历完成，`discovered` 是找到的原文，`imported` 是成功解析的周，`failed` 列出失败原因。只要有失败，命令以非零状态结束，不能视为全学期收齐。`--archive /仓库外/目录` 可保留本次官网原始 HTML。
+
+也可打开仓库 **Actions → Import published semester menus → Run workflow**，输入学期执行。此任务没有定时计划；成功的数据和核对报告自动提交，原始网页保留为 7 天的 Actions artifact。首次加入或修改补录程序时也执行一次。GitHub Actions 自带 token 提交不会自动触发 Pages；补录后需要再从普通 GitHub 身份提交，或在 Pages 发布任务中手动重新运行发布。
 
 离线解析测试：
 
