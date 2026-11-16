@@ -1,0 +1,46 @@
+name: Import published semester menus
+on:
+  workflow_dispatch:
+    inputs:
+      semester:
+        description: Academic semester (e.g. 2026-2027-1)
+        required: true
+        default: '2026-2027-1'
+  push:
+    paths:
+      - .github/workflows/backfill-semester.yml
+      - scripts/backfill_semester.py
+permissions:
+  contents: write
+concurrency:
+  group: menu-semester-import
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch public school menus
+        env:
+          SEMESTER: ${{ inputs.semester || '2026-2027-1' }}
+        run: python3 scripts/backfill_semester.py --semester "$SEMESTER" --archive /tmp/menu-sources
+      - name: Save verified data and import report
+        if: always()
+        run: |
+          git config user.name 'Menu sync'
+          git config user.email 'menu-sync@users.noreply.github.com'
+          git add docs/data/menus.json
+          if [ -f docs/data/import-report.json ]; then git add docs/data/import-report.json; fi
+          if ! git diff --cached --quiet; then
+            git commit -m 'Import published semester menus and record source checks'
+            git push origin HEAD:main
+          fi
+      - name: Keep original pages for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-menu-sources
+          path: /tmp/menu-sources
+          retention-days: 7
+          if-no-files-found: ignore
