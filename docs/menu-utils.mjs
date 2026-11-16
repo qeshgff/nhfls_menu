@@ -7,9 +7,11 @@ export function addDays(iso, count) { const d = new Date(`${iso}T12:00:00Z`); d.
 export function monday(iso) { const day = new Date(`${iso}T12:00:00Z`).getUTCDay(); return addDays(iso, -((day + 6) % 7)); }
 export function weekday(iso) { return '周' + '日一二三四五六'[new Date(`${iso}T12:00:00Z`).getUTCDay()]; }
 export function shortDate(iso) { const [, m, d] = iso.split('-'); return `${Number(m)}月${Number(d)}日`; }
-export function weekContains(week, date) { return monday(week.start) <= date && date <= addDays(monday(week.start), 6); }
+export function weekContains(week, date) { return monday(week.start) <= date && date <= addDays(monday(week.end), 6); }
 export function initialSelection(weeks, today) {
-  const current = weeks.find(w => weekContains(w, today));
+  const exact = weeks.find(w => w.days.some(day => day.date === today));
+  const matching = weeks.filter(w => weekContains(w, today)).sort((a, b) => b.start.localeCompare(a.start));
+  const current = exact || matching.find(w => w.start <= today) || matching[0];
   if (current) return { week: current, date: today };
   const upcoming = [...weeks].filter(w => w.start > today).sort((a, b) => a.start.localeCompare(b.start))[0];
   const week = upcoming || weeks[weeks.length - 1];
@@ -54,3 +56,5 @@ export function ingredientTags(value) {
   }
   return tags;
 }
+
+export function dateStripStart(week) { const start = monday(week.start); return week.end > addDays(start, 6) ? week.start : start; }

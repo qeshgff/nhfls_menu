@@ -1,4 +1,4 @@
-import { MEALS, chinaDate, addDays, monday, weekday, shortDate, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml as esc } from './menu-utils.mjs';
+import { MEALS, chinaDate, addDays, monday, dateStripStart, weekday, shortDate, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml as esc } from './menu-utils.mjs';
 
 const $ = id => document.getElementById(id);
 let data, activeWeek, activeDate, view = 'day', activeMeal = 'lunch';
@@ -52,7 +52,7 @@ function renderStatus() {
   else { el.textContent = `已收录 ${activeWeek.label} · 菜谱如有调整，以食堂实际供餐为准。`; }
 }
 function renderDates() {
-  const start = monday(activeWeek.start);
+  const start = dateStripStart(activeWeek);
   $('date-strip').innerHTML = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(start, i), hasMenu = !!dayByDate(date);
     return `<button class="date-button ${date === activeDate ? 'selected' : ''} ${date === today ? 'today' : ''}" data-date="${date}" aria-pressed="${date === activeDate}" aria-label="${shortDate(date)} ${weekday(date)}${date === today ? ' 今天' : ''}${hasMenu ? '' : ' 无已发布菜单'}"><span class="weekday">${weekday(date)}</span><span class="number">${Number(date.slice(-2))}</span>${hasMenu ? '<span class="dot"></span>' : '<span class="no-menu">未发布</span>'}</button>`;
@@ -94,7 +94,7 @@ function initialize() {
   $('prev-week').addEventListener('click', () => setWeek(data.weeks[data.weeks.indexOf(activeWeek) - 1].id));
   $('next-week').addEventListener('click', () => setWeek(data.weeks[data.weeks.indexOf(activeWeek) + 1].id));
   $('date-strip').addEventListener('click', e => { const button = e.target.closest('[data-date]'); if (!button) return; activeDate = button.dataset.date; renderDates(); renderDay(); });
-  $('go-today').addEventListener('click', () => { today = chinaDate(); const w = data.weeks.find(w => weekContains(w, today)) || initialSelection(data.weeks, today).week; setWeek(w.id, today); setView('day'); });
+  $('go-today').addEventListener('click', () => { today = chinaDate(); const w = initialSelection(data.weeks, today).week; setWeek(w.id, today); setView('day'); });
   $('meal-tabs').addEventListener('click', e => { const button = e.target.closest('[data-meal]'); if (!button) return; activeMeal = button.dataset.meal; $('meal-tabs').querySelectorAll('button').forEach(el => el.setAttribute('aria-pressed', String(el === button))); renderWeek(); });
   $('main').addEventListener('click', e => { const button = e.target.closest('[data-jump-week]'); if (!button) return; setWeek(button.dataset.jumpWeek, button.dataset.jumpDate); setView('day'); $('main').scrollIntoView({ behavior: 'smooth' }); });
   $('search-input').addEventListener('input', renderSearch);

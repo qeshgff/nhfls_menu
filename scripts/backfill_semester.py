@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import sys
 import time
+from urllib.request import Request, urlopen
 from urllib.parse import urljoin, urlsplit
 
 from fetch_menu import Document, INDEX, ROOT, clean, discover, download, parse_menu, save_weeks, source_url
@@ -78,6 +79,20 @@ def main():
         print(f'读取 {url}', flush=True)
         html = download(url)
         if args.archive:
+            # A few official menus are images rather than HTML tables.
+            # Keep their original pixels as well as the surrounding page.
+            for image in Document(html).root.nodes('img'):
+                src = image.attrs.get('original-src') or image.attrs.get('src', '')
+                if not src.startswith('/_upload/article/images/'):
+                    continue
+                image_url = source_url(urljoin(url, src))
+                with urlopen(Request(image_url, headers={'User-Agent': 'NHFLS-Menu/1.0'}), timeout=25) as response:
+                    source_url(response.url)
+                    raw = response.read(5_000_001)
+                if len(raw) > 5_000_000:
+                    raise ValueError('菜谱图片超过 5 MB')
+                args.archive.mkdir(parents=True, exist_ok=True)
+                (args.archive / Path(urlsplit(image_url).path).name).write_bytes(raw)
             args.archive.mkdir(parents=True, exist_ok=True)
             name = urlsplit(url).path.strip('/').replace('/', '_') + '.html'
             (args.archive / name).write_text(html, encoding='utf-8')

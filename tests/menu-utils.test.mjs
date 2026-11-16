@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chinaDate, monday, addDays, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml } from '../docs/menu-utils.mjs';
+import { chinaDate, monday, dateStripStart, addDays, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml } from '../docs/menu-utils.mjs';
 import { readFileSync } from 'node:fs';
 const week = { id:'2026-11-16', start:'2026-11-16', end:'2026-11-20', days:[{date:'2026-11-16', meals:{lunch:[{name:'酸汤牛腩', ingredients:'牛腩110g 土豆30g'}], dinner:[], breakfast:[]}}] };
 test('中国日期不依赖访客所在时区', () => assert.equal(chinaDate(new Date('2026-11-15T17:00:00Z')), '2026-11-16'));
@@ -18,7 +18,7 @@ test('保留官网不完整信息，不猜测克重归属', () => {
   assert.deepEqual(ingredientTags('100g'), ['100g']);
   assert.deepEqual(ingredientTags(''), []);
 });
-const realWeek = JSON.parse(readFileSync(new URL('../docs/data/menus.json', import.meta.url), 'utf8')).weeks[0];
+const realWeek = JSON.parse(readFileSync(new URL('../docs/data/menus.json', import.meta.url), 'utf8')).weeks.find(w => w.id === '2026-11-16');
 test('实际午餐按取餐规则分组，牛肉汤特色餐不误当套餐汤', () => {
   const groups = mealGroups('lunch', realWeek.days[2].meals.lunch);
   assert.deepEqual(groups.map(g => g.title), ['大荤', '小荤', '素菜', '特色餐', '汤']);
@@ -50,4 +50,14 @@ test('异常行数完整显示原菜单，避免默默漏菜或错误标注', ()
   const groups = mealGroups('dinner', items);
   assert.equal(groups[0].key, 'unclassified');
   assert.deepEqual(groups[0].items, items);
+});
+
+test('周日调休跨自然周时，每一天都能选择且优先精确日期', () => {
+  const previous = {id:'2026-09-14',start:'2026-09-14',end:'2026-09-18',days:[{date:'2026-09-14'}]};
+  const holiday = {id:'2026-09-20',start:'2026-09-20',end:'2026-09-24',days:Array.from({length:5},(_,i)=>({date:addDays('2026-09-20',i)}))};
+  assert.equal(dateStripStart(holiday),'2026-09-20');
+  for (const day of holiday.days) assert.equal(initialSelection([previous,holiday],day.date).week.id,holiday.id);
+  assert.equal(initialSelection([previous,holiday],'2026-09-19').week.id,previous.id);
+  assert.equal(initialSelection([previous,holiday],'2026-09-25').date,'2026-09-25');
+  assert.equal(weekContains(holiday,'2026-09-25'),true);
 });
