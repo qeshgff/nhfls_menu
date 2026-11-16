@@ -24,6 +24,8 @@ test('实际午餐按取餐规则分组，牛肉汤特色餐不误当套餐汤',
   assert.deepEqual(groups.map(g => g.title), ['大荤', '小荤', '素菜', '特色餐', '汤']);
   assert.equal(groups[0].rule, '三选一');
   assert.equal(groups[1].rule, '二选一');
+  assert.equal(groups.find(g => g.key === 'vegetable').rule, '两种必选');
+  assert.equal(groups.find(g => g.key === 'vegetable').items.length, 2);
   assert.equal(groups[0].items.length, 3);
   assert.equal(groups[1].items.length, 2);
   assert.equal(groups.find(g => g.key === 'specialty').items[0].name, '淮南牛肉汤');
@@ -33,6 +35,8 @@ test('实际晚餐单列糕点，两种特色餐和汤均完整保留', () => {
   const items = realWeek.days[0].meals.dinner;
   const groups = mealGroups('dinner', items);
   assert.equal(groups.find(g => g.key === 'pastry').items[0].name, '汉堡');
+  assert.equal(groups.find(g => g.key === 'vegetable').rule, '两种必选');
+  assert.equal(groups.find(g => g.key === 'vegetable').items.length, 2);
   assert.deepEqual(groups.find(g => g.key === 'specialty').items.map(i => i.name), ['虾仁馄饨', '蚝油肉片盖浇饭']);
   assert.equal(groups.flatMap(g => g.items).length, items.length);
   assert.equal(groups.at(-1).items[0].name, '紫菜汤');

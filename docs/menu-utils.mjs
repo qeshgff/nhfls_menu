@@ -31,7 +31,7 @@ export function mealGroups(meal, items) {
   const groups = [
     { key: 'main', title: '大荤', rule: '三选一', items: items.slice(0, 3) },
     { key: 'side', title: '小荤', rule: '二选一', items: items.slice(3, 5) },
-    { key: 'vegetable', title: '素菜', rule: '选1份', items: items.slice(5, 7) },
+    { key: 'vegetable', title: '素菜', rule: '两种必选', items: items.slice(5, 7) },
   ];
   const specialtyStart = meal === 'dinner' ? 8 : 7;
   if (meal === 'dinner') groups.push({ key: 'pastry', title: '糕点', rule: '晚餐提供', items: items.slice(7, 8) });

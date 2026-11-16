@@ -6,11 +6,6 @@ on:
         description: Academic semester (e.g. 2026-2027-1)
         required: true
         default: '2026-2027-1'
-  push:
-    paths:
-      - .github/workflows/backfill-semester.yml
-      - scripts/backfill_semester.py
-      - scripts/curated/**
 permissions:
   contents: write
 concurrency:
