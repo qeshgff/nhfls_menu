@@ -1,3 +1,4 @@
+import { initializeCommunity } from './community.mjs';
 import { MEALS, chinaDate, addDays, monday, dateStripStart, weekday, shortDate, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml as esc } from './menu-utils.mjs';
 
 const $ = id => document.getElementById(id);
@@ -10,15 +11,16 @@ function ingredients(value) {
   const tags = ingredientTags(value);
   return tags.length ? `<ul class="ingredients" aria-label="食材与克重">${tags.map(tag => `<li class="ingredient-tag">${esc(tag)}</li>`).join('')}</ul>` : '<p class="ingredient-empty">官网未提供食材信息</p>';
 }
-function dishes(items) {
-  return `<ul class="dish-list">${items.map((dish, i) => `<li><details><summary><span class="dish-num">${String(i + 1).padStart(2, '0')}</span><span class="dish-name">${esc(dish.name)}</span></summary>${dish.ingredientNote ? `<p class="ingredient-note">${esc(dish.ingredientNote)}</p>` : ''}${ingredients(dish.ingredients)}</details></li>`).join('')}</ul>`;
+function dishes(items, context = {}) {
+  return `<ul class="dish-list">${items.map((dish, i) => `<li><details><summary><span class="dish-num">${String(i + 1).padStart(2, '0')}</span><span class="dish-name">${esc(dish.name)}</span></summary>${dish.ingredientNote ? `<p class="ingredient-note">${esc(dish.ingredientNote)}</p>` : ''}${ingredients(dish.ingredients)}${context.date ? `<button type="button" class="review-open" data-review-date="${esc(context.date)}" data-review-meal="${esc(context.meal)}" data-review-dish="${esc(dish.name)}">评分与同学评价 ↗</button>` : ''}</details></li>`).join('')}</ul>`;
 }
-function groupedDishes(meal, items) {
+function groupedDishes(meal, items, date = activeDate) {
+  const context = { meal, date };
   if (!items.length) return '<p class="week-empty">官网未提供这餐的菜单。</p>';
-  if (meal === 'breakfast') return dishes(items);
+  if (meal === 'breakfast') return dishes(items, context);
   const groups = mealGroups(meal, items);
-  if (groups[0]?.key === 'unclassified') return `<p class="category-note">按官网顺序显示，分类待确认。</p>${dishes(items)}`;
-  return `<div class="meal-groups">${groups.map(group => `<section class="dish-group ${group.key}" aria-label="${group.title}${group.rule ? ` · ${group.rule}` : ''}"><div class="group-heading"><h4>${group.title}</h4>${group.rule ? `<span class="choice-rule">${group.rule}</span>` : ''}${group.key === 'specialty' ? `<span class="group-count">${group.items.length}种</span>` : ''}</div>${dishes(group.items)}</section>`).join('')}</div>`;
+  if (groups[0]?.key === 'unclassified') return `<p class="category-note">按官网顺序显示，分类待确认。</p>${dishes(items, context)}`;
+  return `<div class="meal-groups">${groups.map(group => `<section class="dish-group ${group.key}" aria-label="${group.title}${group.rule ? ` · ${group.rule}` : ''}"><div class="group-heading"><h4>${group.title}</h4>${group.rule ? `<span class="choice-rule">${group.rule}</span>` : ''}${group.key === 'specialty' ? `<span class="group-count">${group.items.length}种</span>` : ''}</div>${dishes(group.items, context)}</section>`).join('')}</div>`;
 }
 function safeSource(url) {
   try { const u = new URL(url); return u.protocol === 'https:' && ['www.nhfls.com.cn', 'nhfls.com.cn'].includes(u.hostname) ? u.href : 'https://www.nhfls.com.cn/mzsp/list.htm'; }
@@ -74,7 +76,7 @@ function renderDay() {
 }
 function renderWeek() {
   $('week-view').querySelector('h2').textContent = `${activeWeek.label} · ${MEALS[activeMeal].name}`;
-  $('week-grid').innerHTML = activeWeek.days.map(day => `<article class="week-day"><h3>${weekday(day.date)}<span>${shortDate(day.date)}</span></h3>${groupedDishes(activeMeal, day.meals[activeMeal] || [])}</article>`).join('');
+  $('week-grid').innerHTML = activeWeek.days.map(day => `<article class="week-day"><h3>${weekday(day.date)}<span>${shortDate(day.date)}</span></h3>${groupedDishes(activeMeal, day.meals[activeMeal] || [], day.date)}</article>`).join('');
 }
 function renderSearch() {
   const query = $('search-input').value.trim();
@@ -105,7 +107,7 @@ async function load() {
   try {
     const response = await fetch(new URL('./data/menus.json', import.meta.url), { cache: 'no-cache' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    data = await response.json(); initialize();
+    data = await response.json(); initialize(); initializeCommunity();
   } catch (error) {
     $('status').textContent = '菜单暂时没有加载成功，请刷新重试，或查看学校官网原文。';
     $('status').classList.add('notice');

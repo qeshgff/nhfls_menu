@@ -1,0 +1,10 @@
+# Local emulator configuration only. Copy to wrangler.toml (gitignored).
+# For Git-connected production deployment configure DB in the CF dashboard.
+name = "nhfls-menu"
+pages_build_output_dir = "./docs"
+compatibility_date = "2026-11-17"
+[[d1_databases]]
+binding = "DB"
+database_name = "nhfls-menu"
+database_id = "nhfls-menu"
+migrations_dir = "migrations"

@@ -8,9 +8,13 @@
 
 官网同一格合并列出的“排骨面、大肉面”会拆开显示，并保留共用食材说明；某天官网只公布一种特色餐时，只显示已经公布的内容。官网结构出现未确认的行数时保留完整列表，提示分类待确认，避免漏菜。
 
+## Cloudflare Pages 与评论评分
+
+已准备 Cloudflare Pages Functions + D1 版本，部署配置和切换步骤见 [Cloudflare 迁移指南](deploy/cloudflare.md)。菜谱仍可由 GitHub Pages 静态发布；只有正确连接 Cloudflare 数据库与人机验证后才显示评分、评论入口。评论默认审核后公开，管理员入口为 `/moderate.html`。当前代码完成不代表已经在用户 Cloudflare 账号中创建或绑定项目。
+
 ## 架构
 
-- `docs/`：无需构建的静态网站，HTML / CSS / JavaScript，所有资源本地托管，没有外部字体、CDN 或浏览器抓取代理。
+- `docs/`：无需构建的静态网站，HTML / CSS / JavaScript，菜谱静态资源本地托管，不依赖外部字体 CDN 或浏览器抓取代理；评价提交时按需加载配置的验证码服务。
 - `docs/data/menus.json`：菜单及来源记录，也是网站直接读取的数据。
 - `scripts/fetch_menu.py`：Python 3.10+ 标准库抓取器，无 pip 依赖。处理合并单元格、过滤小学部、校验日期和餐次，完整解析成功后才原子替换数据；无变化时不改时间戳。
 - `scripts/sync.sh`：服务器定时执行，拉取代码、抓菜单、有变化才提交，随后推送；带文件锁，失败退出，工作区脏或分支不对时停止。

@@ -282,3 +282,40 @@ footer small br { display:none; }
   .dish-list summary:after,.ingredients,.ingredient-empty { display:none; }
   .section-head h2 { font-size:13pt; }
 }
+
+/* Community controls load only when the Cloudflare review API is configured. */
+.review-open { display:none; margin:4px 12px 10px; border:0; padding:7px 10px; border-radius:12px; background:#e9f1e7; color:var(--green); cursor:pointer; font:inherit; font-size:11px; }
+.has-community .review-open { display:inline-flex; }
+.review-dialog { width:min(650px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); overflow-y:auto; border:1px solid var(--line); border-radius:24px; padding:24px; background:var(--card,#fffefb); color:var(--ink); box-shadow:0 20px 90px #17392b30; }
+.review-dialog::backdrop { background:#16392b66; backdrop-filter:blur(3px); }
+.review-header { display:flex; justify-content:space-between; gap:15px; align-items:flex-start; }
+.review-header h2 { margin:7px 0; font-size:24px; }
+.review-header p,.review-summary { color:var(--muted); font-size:12px; }
+.review-dialog fieldset { border:0; padding:0; margin:18px 0 12px; }
+.review-dialog legend,.comment-section h3 { font-size:15px; font-weight:700; }
+.rating-stars { display:flex; gap:7px; margin-top:10px; }
+.rating-stars label { flex:1; }
+.rating-stars input { position:absolute; opacity:0; }
+.rating-stars span { display:block; text-align:center; padding:10px 4px; border:1px solid var(--line); border-radius:12px; color:var(--muted); cursor:pointer; }
+.rating-stars input:checked + span { border-color:var(--green); background:#e9f1e7; color:var(--green); }
+.rating-stars input:focus-visible + span { outline:2px solid var(--green); outline-offset:3px; }
+.community-submit { border:0; border-radius:12px; padding:10px 16px; background:var(--green); color:white; font:inherit; cursor:pointer; }
+.community-submit:disabled { opacity:.6; cursor:wait; }
+.comment-section { margin-top:22px; border-top:1px solid var(--line); padding-top:5px; }
+.comment-section label { display:block; font-size:12px; margin:12px 0 6px; }
+.comment-section input,.comment-section textarea { width:100%; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); padding:10px 12px; font:inherit; font-size:13px; }
+.comment-section textarea { resize:vertical; margin-bottom:10px; }
+.review-muted { font-size:11px; line-height:1.8; color:var(--muted); }
+.review-muted a { text-decoration:underline; }
+.review-message { font-size:13px; line-height:1.7; color:var(--green); }
+.student-comment { padding:13px 0; border-top:1px solid var(--line); }
+.student-comment > div { display:flex; justify-content:space-between; gap:10px; font-size:12px; }
+.student-comment time { color:var(--muted); }
+.student-comment p { font-size:13px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:760px) { .review-dialog { padding:18px; border-radius:20px; } .review-header h2 { font-size:21px; } }
+@media print { .review-open,.review-dialog { display:none!important; } }
+.moderation-page { max-width:760px; margin:0 auto; padding:30px 20px; }
+.moderation-page > p { color:var(--muted); font-size:13px; line-height:1.8; }
+#moderation-login { display:grid; gap:10px; margin:25px 0; }
+#moderation-login input { padding:12px; border:1px solid var(--line); border-radius:12px; }
+#moderation-login .community-submit { justify-self:start; }

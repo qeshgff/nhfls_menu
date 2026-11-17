@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>评论审核 · 河外饭点</title><link rel="stylesheet" href="./styles.css"><script type="module" src="./moderation.mjs"></script></head>
+<body><main class="moderation-page"><a href="./">← 返回菜谱</a><h1>评论审核</h1><p>输入管理员密钥后查看待审核评论。密钥只保留在当前页面内存，刷新或退出后清除。</p>
+<form id="moderation-login"><label for="moderation-key">管理员密钥</label><input id="moderation-key" type="password" autocomplete="off" required><button class="community-submit" type="submit">查看待审核评论</button></form>
+<button type="button" id="moderation-logout" class="quiet-button" hidden>退出管理</button><p id="moderation-message" role="status"></p><div id="moderation-list"></div></main></body></html>
