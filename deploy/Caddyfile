@@ -1,0 +1,10 @@
+{$DOMAIN} {
+    encode gzip
+    reverse_proxy app:8787 {
+        # Replace any client-supplied value; app trusts this private upstream.
+        header_up X-Real-IP {remote_host}
+        transport http {
+            keepalive 2s
+        }
+    }
+}

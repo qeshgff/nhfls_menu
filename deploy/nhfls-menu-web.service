@@ -1,0 +1,19 @@
+[Unit]
+Description=NHFLS menu website and reviews
+After=network.target
+
+[Service]
+Type=simple
+User=menu
+Group=menu
+WorkingDirectory=/opt/nhfls_menu
+EnvironmentFile=/opt/nhfls_menu/.env
+ExecStart=/usr/bin/node /opt/nhfls_menu/server/vps.mjs
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

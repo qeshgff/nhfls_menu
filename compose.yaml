@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ORIGIN: https://${DOMAIN:?Set DOMAIN in .env}
+      TRUST_PROXY: '1'
+      DATABASE_PATH: /app/data/reviews.sqlite
+      HOST: 0.0.0.0
+      PORT: '8787'
+    volumes:
+      - menu_data:/app/data
+      - ./docs:/app/docs:ro
+      - menu_backups:/app/backups
+    # No published app port: only Caddy can forward public requests.
+    security_opt:
+      - no-new-privileges:true
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  menu_data:
+  menu_backups:
+  caddy_data:
+  caddy_config:

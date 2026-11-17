@@ -1,0 +1,10 @@
+**
+!Dockerfile
+!docs/
+!docs/**
+!server/
+!server/**
+!migrations/
+!migrations/**
+!scripts/
+!scripts/backup-vps.mjs

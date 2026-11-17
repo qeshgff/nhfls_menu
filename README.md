@@ -8,7 +8,13 @@
 
 官网同一格合并列出的“排骨面、大肉面”会拆开显示，并保留共用食材说明；某天官网只公布一种特色餐时，只显示已经公布的内容。官网结构出现未确认的行数时保留完整列表，提示分类待确认，避免漏菜。
 
-## 一键部署到 Cloudflare Workers
+## 部署到自己的 VPS（保留现有 DNS）
+
+支持 **Node.js 24 + SQLite** 自托管，网站、评论评分、审核一起运行，不需要 Cloudflare 账号或 D1。提供 Docker Compose + Caddy 自动 HTTPS：在原 DNS 服务商添加 `menu` 的 A 记录指向 VPS，复制 `.env.vps.example` 为 `.env` 并填写 `DOMAIN`，执行 `docker compose up -d --build`。首次启动自动建表，数据库存储在持久化卷里；验证码配置齐全后开放评价。
+
+完整步骤、已有宝塔 / 1Panel / Nginx 的部署方式、备份和更新见 **[VPS 部署指南](deploy/vps.md)**。如果服务器已有网站占用 80 / 443，请使用指南中的已有反向代理方案。
+
+## 一键部署到 Cloudflare Workers（可选）
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fqeshgff%2Fnhfls_menu)
 

@@ -11,4 +11,7 @@ node_modules/
 .dev.vars.*
 .env
 .env.*
+!.env.vps.example
+data/
+backups/
 wrangler.toml
