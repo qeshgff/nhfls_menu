@@ -1,5 +1,10 @@
 import { readFile } from 'node:fs/promises';
-const menus = JSON.parse(await readFile(new URL('../docs/data/menus.json',import.meta.url),'utf8'));
+const read = path => readFile(new URL(`../${path}`,import.meta.url),'utf8');
+const menus = JSON.parse(await read('docs/data/menus.json'));
+const config = JSON.parse(await read('wrangler.jsonc'));
 if (menus.schemaVersion !== 1 || !menus.weeks.length) throw new Error('Menu archive is missing');
-for (const path of ['docs/index.html','docs/_routes.json','functions/api/[[path]].js','migrations/0001_reviews.sql']) await readFile(new URL(`../${path}`,import.meta.url));
-console.log(`Cloudflare source ready: ${menus.weeks.length} weeks; output=docs; Functions=/api/*; D1 binding=DB`);
+if (config.main !== 'worker/index.mjs' || config.assets?.directory !== './docs' || config.assets?.binding !== 'ASSETS') throw new Error('Worker entry or static assets configuration is invalid');
+if (!config.assets.run_worker_first.includes('/api/*')) throw new Error('API requests must reach the Worker');
+if (!config.d1_databases?.some(db => db.binding === 'DB' && db.migrations_dir === 'migrations')) throw new Error('D1 DB binding or migrations are missing');
+for (const path of ['docs/index.html',config.main,'migrations/0001_reviews.sql']) await read(path);
+console.log(`Workers source ready: ${menus.weeks.length} weeks; assets=docs; API=/api/*; D1 binding=DB`);

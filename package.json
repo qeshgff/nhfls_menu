@@ -4,12 +4,35 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "dev:cf": "wrangler pages dev docs --compatibility-date=2026-11-17 --inspector-port=9229",
+    "dev:cf": "wrangler dev --config wrangler.jsonc --inspector-port=9229",
     "build:cf": "node scripts/check-cloudflare.mjs",
-    "check:cf": "wrangler pages functions build functions --outdir .cloudflare-build",
-    "dev": "node scripts/dev-cloudflare.mjs"
+    "check:cf": "wrangler deploy --config wrangler.jsonc --dry-run --outdir .cloudflare-build",
+    "dev": "node scripts/dev-cloudflare.mjs",
+    "build": "node scripts/check-cloudflare.mjs",
+    "deploy": "wrangler deploy --config wrangler.jsonc && npm run db:migrate",
+    "db:migrate": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.jsonc"
   },
   "devDependencies": {
     "wrangler": "4.164.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "DB": {
+        "description": "菜品评分和审核评论使用的 D1 数据库。绑定名保持 `DB`，可在部署向导中创建或选择数据库。"
+      },
+      "CAPTCHA_SITE_KEY": {
+        "description": "Google reCAPTCHA v3 的公开 Site key；可以部署后在 Worker 变量中填写。"
+      },
+      "CAPTCHA_SECRET": {
+        "description": "Google reCAPTCHA v3 配对的 Secret key，只填写到 Cloudflare Secret。"
+      },
+      "SESSION_SECRET": {
+        "description": "独立随机字符串，至少32字符；用于签名匿名评分身份。"
+      },
+      "MODERATION_SECRET": {
+        "description": "另一独立随机字符串，至少32字符；用于 `/moderate.html` 评论审核。"
+      }
+    }
   }
 }

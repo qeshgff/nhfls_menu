@@ -8,9 +8,15 @@
 
 官网同一格合并列出的“排骨面、大肉面”会拆开显示，并保留共用食材说明；某天官网只公布一种特色餐时，只显示已经公布的内容。官网结构出现未确认的行数时保留完整列表，提示分类待确认，避免漏菜。
 
-## Cloudflare Pages 与评论评分
+## 一键部署到 Cloudflare Workers
 
-已准备 Cloudflare Pages Functions + D1 版本，部署配置和切换步骤见 [Cloudflare 迁移指南](deploy/cloudflare.md)。菜谱仍可由 GitHub Pages 静态发布；只有正确连接 Cloudflare 数据库与人机验证后才显示评分、评论入口。评论默认审核后公开，管理员入口为 `/moderate.html`。当前代码完成不代表已经在用户 Cloudflare 账号中创建或绑定项目。
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fqeshgff%2Fnhfls_menu)
+
+点击按钮，在自己的 Cloudflare 账号部署 **Workers + Static Assets + D1**。前端和评论接口一起部署，不需要连接 ChatGPT 插件。向导中的 D1 绑定名保持 **`DB`**；默认部署命令会执行建表迁移。如果你手动绑定数据库，需要执行 [`migrations/0001_reviews.sql`](migrations/0001_reviews.sql)。
+
+部署后，在 Worker 的 **Settings → Variables and Secrets** 中填写 `CAPTCHA_SITE_KEY`、`CAPTCHA_SECRET`、`SESSION_SECRET`、`MODERATION_SECRET`，才能启用评论和评分。前两项为 Google reCAPTCHA v3 配对密钥，后两项分别使用至少32字符的独立随机值。**只绑定数据库还不会开放评论。**
+
+详细步骤见 [Cloudflare Workers 部署指南](deploy/cloudflare.md)。评论默认审核后公开，审核入口为 `/moderate.html`。原 GitHub Pages 仍可静态查看菜谱。
 
 ## 架构
 
@@ -20,7 +26,7 @@
 - `scripts/sync.sh`：服务器定时执行，拉取代码、抓菜单、有变化才提交，随后推送；带文件锁，失败退出，工作区脏或分支不对时停止。
 - `deploy/`：可选的 systemd 定时任务。
 
-菜单只从[学校官网每周菜谱](https://www.nhfls.com.cn/mzsp/list.htm)同步，不需要学校账号。服务器更新数据，访客只访问 GitHub Pages。
+菜单只从[学校官网每周菜谱](https://www.nhfls.com.cn/mzsp/list.htm)同步，不需要学校账号。服务器更新数据，访客可访问 GitHub Pages 或部署后的 Cloudflare Worker。
 
 ## 开启 GitHub Pages
 
