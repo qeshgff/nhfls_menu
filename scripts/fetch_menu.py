@@ -258,6 +258,9 @@ def save_weeks(path, weeks):
             stream.write('\n')
             stream.flush()
             os.fsync(stream.fileno())
+        # mkstemp creates 0600 files; the web server may run as another user
+        # (and serves this file over HTTP), so make the published data readable.
+        os.chmod(temporary, 0o644)
         os.replace(temporary, path)
     finally:
         if os.path.exists(temporary):
