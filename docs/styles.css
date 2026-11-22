@@ -288,6 +288,10 @@ footer small br { display:none; }
 .has-community .review-open { display:inline-flex; }
 .review-dialog { width:min(650px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); overflow-y:auto; border:1px solid var(--line); border-radius:24px; padding:24px; background:var(--card,#fffefb); color:var(--ink); box-shadow:0 20px 90px #17392b30; }
 .review-dialog::backdrop { background:#16392b66; backdrop-filter:blur(3px); }
+.review-checkbox[open] { position:fixed; inset:0; margin:auto; height:fit-content; z-index:1001; }
+.review-checkbox-overlay { display:none; position:fixed; inset:0; z-index:1000; background:#16392b66; backdrop-filter:blur(3px); }
+.review-checkbox-overlay:has(+ .review-checkbox[open]) { display:block; }
+body:has(.review-checkbox[open]) { overflow:hidden; }
 .review-header { display:flex; justify-content:space-between; gap:15px; align-items:flex-start; }
 .review-header h2 { margin:7px 0; font-size:24px; }
 .review-header p,.review-summary { color:var(--muted); font-size:12px; }
@@ -305,7 +309,9 @@ footer small br { display:none; }
 .comment-section label { display:block; font-size:12px; margin:12px 0 6px; }
 .comment-section input,.comment-section textarea { width:100%; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); padding:10px 12px; font:inherit; font-size:13px; }
 .comment-section textarea { resize:vertical; margin-bottom:10px; }
-.comment-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.comment-actions:not([hidden]) { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+#comment-captcha { overflow-x:auto; }
+#comment-submit:disabled { cursor:default; }
 .review-muted { font-size:11px; line-height:1.8; color:var(--muted); }
 .review-muted a { text-decoration:underline; }
 .review-message { font-size:13px; line-height:1.7; color:var(--green); }
@@ -314,7 +320,7 @@ footer small br { display:none; }
 .student-comment time { color:var(--muted); }
 .student-comment p { font-size:13px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
 @media(max-width:760px) { .review-dialog { padding:18px; border-radius:20px; } .review-header h2 { font-size:21px; } }
-@media print { .review-open,.review-dialog { display:none!important; } }
+@media print { .review-open,.review-dialog,.review-checkbox-overlay { display:none!important; } }
 .moderation-page { max-width:760px; margin:0 auto; padding:30px 20px; }
 .moderation-page > p { color:var(--muted); font-size:13px; line-height:1.8; }
 #moderation-login { display:grid; gap:10px; margin:25px 0; }

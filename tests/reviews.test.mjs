@@ -103,6 +103,42 @@ test('Turnstile uses server validation and the action/hostname checks too',async
   const env={...environment(),CAPTCHA_PROVIDER:'turnstile'};
   await verifyCaptcha(request('ratings'),env,token,'rate_dish',async(url)=>{assert.equal(url,'https://challenges.cloudflare.com/turnstile/v0/siteverify');return Response.json(solved('rate_dish'));});
 });
+test('v2 comments use their own key and reject failed, expired or mismatched responses', async () => {
+  const env = { ...environment(), COMMENT_CAPTCHA_V2_SITE_KEY:'v2-site', COMMENT_CAPTCHA_V2_SECRET:'v2-private' };
+  const config = await (await handleRequest(request('config'),env)).json();
+  assert.deepEqual(config.commentCaptcha,{provider:'recaptcha-v2',siteKey:'v2-site',enabled:true});
+  assert.ok(!JSON.stringify(config).includes('v2-private'));
+  const cookie = await visitor(env);
+  const v2 = { success:true, hostname:'menu.example', challenge_ts:new Date().toISOString() };
+  const comment = { content:'已通过勾选验证' };
+  const verify = changes => async (url,options) => {
+    assert.equal(url,'https://www.recaptcha.net/recaptcha/api/siteverify');
+    assert.equal(options.body.get('secret'),'v2-private');
+    return Response.json({ ...v2, ...changes });
+  };
+  for (const changes of [
+    { hostname:'other.example' }, { challenge_ts:new Date(Date.now()-180000).toISOString() },
+    { success:false, 'error-codes':['timeout-or-duplicate'] }, { action:'comment_dish', score:0.9 },
+  ]) {
+    assert.equal((await send(env,'comments',comment,cookie,verify(changes))).status,403);
+  }
+  assert.equal(env.DB.sqlite.prepare('SELECT count(*) n FROM comments').get().n,0);
+  const posted = await send(env,'comments',comment,cookie,verify({}));
+  assert.equal(posted.status,201);
+  assert.equal((await posted.json()).status,'pending');
+  assert.equal((await send(env,'ratings',{stars:4},cookie,async (_url,options) => {
+    assert.equal(options.body.get('secret'),env.CAPTCHA_SECRET);
+    return Response.json(solved('rate_dish'));
+  })).status,200);
+});
+test('incomplete v2 configuration blocks comments without disabling v3 ratings', async () => {
+  const env = { ...environment(), COMMENT_CAPTCHA_V2_SITE_KEY:'v2-site' };
+  const config = await (await handleRequest(request('config'),env)).json();
+  assert.equal(config.ratingsEnabled,true);
+  assert.equal(config.commentCaptcha.enabled,false);
+  assert.equal((await send(env,'comments',{content:'测试'},null)).status,503);
+  assert.equal((await send(env,'ratings',{stars:4},null)).status,200);
+});
 test('canonical dish name keeps cooking methods distinct while removing new-dish annotations',()=>{
   assert.equal(canonicalDish('莲藕红烧肉（新菜）'),'莲藕红烧肉');assert.notEqual(canonicalDish('红烧牛肉'),canonicalDish('酸汤牛肉'));
 });

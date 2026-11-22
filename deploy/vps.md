@@ -43,6 +43,13 @@ SESSION_SECRET=独立生成的随机值
 MODERATION_SECRET=另一独立生成的随机值
 ```
 
+如果评论要显示「我不是机器人」勾选框，请在 [Google reCAPTCHA 管理页](https://www.google.com/recaptcha/admin/create) 另外创建一套 **v2 / 勾选框**密钥。允许域名填实际访问的主机名，在 `.env` 增加下面两项。原有 `CAPTCHA_SITE_KEY` 和 `CAPTCHA_SECRET` 继续用于评分。两项 v2 配置都留空时，评论沿用原来的验证方式。只填一项时暂停发表评论。
+
+```dotenv
+COMMENT_CAPTCHA_V2_SITE_KEY=你的v2公开站点密钥
+COMMENT_CAPTCHA_V2_SECRET=你的v2私密密钥
+```
+
 使用下面命令生成一个随机值，运行两次，分别填入后两项（不要填示例文字）：
 
 ```bash
@@ -52,7 +59,7 @@ openssl rand -hex 32
 设置后重新创建 app，使新的环境变量生效：
 
 ```bash
-docker compose up -d --force-recreate app
+docker compose up -d --build app
 ```
 
 `/api/health` 的 `reviewsEnabled:true` 只表示配置已齐全；还需在真实域名实际提交一次评分和评论，确认验证码可用。每次评分 / 评论都会进行服务端验证。评论先进入审核队列，访问 `/moderate.html` 并输入 `MODERATION_SECRET` 审核；此密钥不要发给访客。

@@ -24,8 +24,15 @@ function decodeHex(value) { return new Uint8Array(value.match(/../g).map(n => pa
 export function publicConfig(env) {
   const provider = env.CAPTCHA_PROVIDER || 'recaptcha-v3';
   const providerValid = ['recaptcha-v3','turnstile'].includes(provider);
-  return { enabled: Boolean(env.DB && env.CAPTCHA_SITE_KEY && env.CAPTCHA_SECRET && env.SESSION_SECRET?.length >= 32 && providerValid),
-    provider, siteKey: env.CAPTCHA_SITE_KEY || '', moderation: true, anonymous: true };
+  const shared = Boolean(env.DB && env.SESSION_SECRET?.length >= 32);
+  const ratingsEnabled = Boolean(shared && env.CAPTCHA_SITE_KEY && env.CAPTCHA_SECRET && providerValid);
+  const commentV2 = env.COMMENT_CAPTCHA_V2_SITE_KEY || env.COMMENT_CAPTCHA_V2_SECRET;
+  const commentCaptcha = commentV2 ? {
+    provider: 'recaptcha-v2', siteKey: env.COMMENT_CAPTCHA_V2_SITE_KEY || '',
+    enabled: Boolean(shared && env.COMMENT_CAPTCHA_V2_SITE_KEY && env.COMMENT_CAPTCHA_V2_SECRET),
+  } : { provider, siteKey: env.CAPTCHA_SITE_KEY || '', enabled: ratingsEnabled };
+  return { enabled: ratingsEnabled || commentCaptcha.enabled, ratingsEnabled,
+    provider, siteKey: env.CAPTCHA_SITE_KEY || '', commentCaptcha, moderation: true, anonymous: true };
 }
 async function session(request, env) {
   const raw = request.headers.get('Cookie')?.match(/(?:^|;\s*)nhfls_session=([^;]+)/)?.[1];
@@ -46,11 +53,14 @@ async function session(request, env) {
 }
 export async function verifyCaptcha(request, env, token, action, fetcher = fetch) {
   if (typeof token !== 'string' || token.length < 10 || token.length > 4096) fail(400, '请先完成人机验证。');
-  const provider = env.CAPTCHA_PROVIDER || 'recaptcha-v3';
+  const config = publicConfig(env);
+  const useCommentV2 = action === 'comment_dish' && config.commentCaptcha.provider === 'recaptcha-v2';
+  const provider = useCommentV2 ? 'recaptcha-v2' : config.provider;
+  const secret = useCommentV2 ? env.COMMENT_CAPTCHA_V2_SECRET : env.CAPTCHA_SECRET;
   const endpoint = provider === 'turnstile' ? 'https://challenges.cloudflare.com/turnstile/v0/siteverify' : 'https://www.recaptcha.net/recaptcha/api/siteverify';
   let result;
   try {
-    const response = await fetcher(endpoint, { method:'POST', body:new URLSearchParams({ secret:env.CAPTCHA_SECRET, response:token }), signal:AbortSignal.timeout(10000) });
+    const response = await fetcher(endpoint, { method:'POST', body:new URLSearchParams({ secret, response:token }), signal:AbortSignal.timeout(10000) });
     if (!response.ok) fail(503, '人机验证服务暂时不可用，请稍后重试。');
     result = await response.json();
   } catch { fail(503, '人机验证服务暂时不可用，请稍后重试。'); }
@@ -59,7 +69,8 @@ export async function verifyCaptcha(request, env, token, action, fetcher = fetch
   // including a success=true response carrying "Over free quota.".
   const errors = result['error-codes'];
   if (!result.success || (errors && (!Array.isArray(errors) || errors.length)) || result.error || /over free quota/i.test(JSON.stringify(result))) fail(403, '人机验证未通过，请重试。');
-  if (result.hostname !== hostname || result.action !== action) fail(403, '人机验证来源不匹配，请刷新后重试。');
+  if (result.hostname !== hostname || (!useCommentV2 && result.action !== action)) fail(403, '人机验证来源不匹配，请刷新后重试。');
+  if (useCommentV2 && (result.action !== undefined || result.score !== undefined)) fail(403, '请完成评论区的勾选验证。');
   const age = Date.now() - Date.parse(result.challenge_ts);
   if (!Number.isFinite(age) || age < -30000 || age > (provider === 'turnstile' ? 300000 : 120000)) fail(403, '人机验证已过期，请重试。');
   const threshold = Number(env.RECAPTCHA_MIN_SCORE ?? '0.5');
@@ -232,7 +243,8 @@ export async function handleRequest(request, env, fetcher = fetch) {
       return json({ summary,overall,comments:results,mine:mine?.stars || null },200,headers);
     }
     if (!['ratings','comments'].includes(path) || request.method !== 'POST') fail(404,'接口不存在。');
-    if (!publicConfig(env).enabled) fail(503,'人机验证尚未配置，暂不能提交。');
+    const config = publicConfig(env);
+    if (!(path === 'ratings' ? config.ratingsEnabled : config.commentCaptcha.enabled)) fail(503,'人机验证尚未配置，暂不能提交。');
     const input = await body(request), item = await target(input);
     const current = await session(request,env);
     const headers = current.cookie ? { 'Set-Cookie':current.cookie } : {};
