@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import publishedMenus from '../docs/data/menus.json' with { type:'json' };
 import { once } from 'node:events';
 import { backup, DatabaseSync } from 'node:sqlite';
 import { createApp, siteOrigin } from '../server/vps.mjs';
@@ -26,7 +27,7 @@ test('VPS serves the real menu and initializes SQLite without CAPTCHA', async t 
   const { base } = await fixture(t,{enabled:false});
   const page = await fetch(base+'/'); assert.equal(page.status,200); assert.match(await page.text(),/河外饭点/);
   const module = await fetch(base+'/community.mjs'); assert.match(module.headers.get('content-type'),/javascript/);
-  const menus = await (await fetch(base+'/data/menus.json')).json(); assert.equal(menus.weeks.length,12);
+  const menus = await (await fetch(base+'/data/menus.json')).json(); assert.deepEqual(menus,publishedMenus);
   const health = await (await fetch(base+'/api/health')).json(); assert.deepEqual(health,{ok:true,database:true,reviewsEnabled:false});
   assert.equal((await (await fetch(base+'/api/config')).json()).enabled,false);
   const head = await fetch(base+'/styles.css',{method:'HEAD'}); assert.equal(head.status,200); assert.equal(await head.text(),'');

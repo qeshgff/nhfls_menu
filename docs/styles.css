@@ -305,6 +305,7 @@ footer small br { display:none; }
 .comment-section label { display:block; font-size:12px; margin:12px 0 6px; }
 .comment-section input,.comment-section textarea { width:100%; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); padding:10px 12px; font:inherit; font-size:13px; }
 .comment-section textarea { resize:vertical; margin-bottom:10px; }
+.comment-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
 .review-muted { font-size:11px; line-height:1.8; color:var(--muted); }
 .review-muted a { text-decoration:underline; }
 .review-message { font-size:13px; line-height:1.7; color:var(--green); }

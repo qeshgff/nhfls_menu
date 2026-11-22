@@ -1,6 +1,6 @@
 import { escapeHtml as esc, MEALS, weekday } from './menu-utils.mjs';
 let configuration, dialog, context, refreshVersion = 0;
-let googleLoading, turnstileLoading, turnstileId;
+let googleLoading, googleWidget, turnstileLoading, turnstileId;
 const endpoint = path => new URL(`./api/${path}`,import.meta.url);
 async function api(path, options = {}) {
   const response = await fetch(endpoint(path), { credentials:'same-origin', cache:'no-store', ...options });
@@ -18,13 +18,35 @@ function script(url) {
     document.head.append(el);
   });
 }
+async function loadGoogleBadge() {
+  googleLoading ||= script('https://www.recaptcha.net/recaptcha/api.js?render=explicit').catch(error => {
+    googleLoading = null;
+    throw error;
+  });
+  await googleLoading;
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(Error('人机验证加载超时，请重试。')), 15000);
+    window.grecaptcha.ready(() => {
+      clearTimeout(timeout);
+      try {
+        googleWidget ??= window.grecaptcha.render(dialog.querySelector('#review-google-badge'), {
+          sitekey: configuration.siteKey,
+          size: 'invisible',
+          badge: 'inline',
+        });
+        resolve(googleWidget);
+      } catch (error) { reject(error); }
+    });
+  });
+}
 async function captcha(action) {
   if (configuration.provider === 'recaptcha-v3') {
-    googleLoading ||= script(`https://www.recaptcha.net/recaptcha/api.js?render=${encodeURIComponent(configuration.siteKey)}`).catch(error=>{googleLoading=null;throw error;});
-    await googleLoading;
-    return new Promise((resolve,reject) => {
-      const timeout=setTimeout(()=>reject(Error('人机验证超时，请重试。')),20000);
-      window.grecaptcha.ready(()=>window.grecaptcha.execute(configuration.siteKey,{action}).then(value=>{clearTimeout(timeout);resolve(value);},()=>{clearTimeout(timeout);reject(Error('人机验证失败，请重试。'));}));
+    const widget = await loadGoogleBadge();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(Error('人机验证超时，请重试。')), 20000);
+      Promise.resolve().then(() => window.grecaptcha.execute(widget, { action })).then(resolve, () => {
+        reject(Error('人机验证失败，请重试。'));
+      }).finally(() => clearTimeout(timeout));
     });
   }
   turnstileLoading ||= script('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit').catch(error=>{turnstileLoading=null;throw error;});
@@ -49,11 +71,13 @@ async function refresh() {
   if (selected) selected.checked=true;
 }
 function makeDialog() {
+  const google = configuration.provider === 'recaptcha-v3';
   dialog=document.createElement('dialog'); dialog.className='review-dialog'; dialog.setAttribute('aria-labelledby','review-title');
   dialog.innerHTML=`<div class="review-header"><div><span class="eyebrow">同学们的饭后评价</span><h2 id="review-title"></h2><p id="review-context"></p></div><button type="button" class="icon-button" id="review-close" aria-label="关闭评价">×</button></div>
     <p id="review-summary" class="review-summary"></p>
     <form id="rating-form"><fieldset><legend>这次吃起来怎么样？</legend><div class="rating-stars">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="stars" value="${n}" required><span>${n} ★</span></label>`).join('')}</div></fieldset><button type="submit" class="community-submit">提交评分</button></form>
-    <section class="comment-section"><h3>说说这道菜</h3><form id="comment-form"><label for="review-nickname">昵称（选填）</label><input id="review-nickname" name="nickname" maxlength="20" placeholder="同学"><label for="review-content">评价</label><textarea id="review-content" name="content" maxlength="500" rows="3" placeholder="口味、份量，或这次有什么变化…" required></textarea><button type="submit" class="community-submit">提交评论</button></form></section>
+    <section class="comment-section"><h3>说说这道菜</h3><form id="comment-form"><label for="review-nickname">昵称（选填）</label><input id="review-nickname" name="nickname" maxlength="20" placeholder="同学"><label for="review-content">评价</label><textarea id="review-content" name="content" maxlength="500" rows="3" placeholder="口味、份量，或这次有什么变化…" required></textarea></form>
+    <div class="comment-actions"><button type="submit" form="comment-form" class="community-submit">${google ? 'Google 验证并提交评论' : '提交评论'}</button>${google ? '<div id="review-google-badge"></div>' : ''}</div></section>
     <p class="review-muted">每次评分和评论均需人机验证。评论审核后显示；同一浏览器对这次供餐的评分可以修改。请勿填写真实姓名、班级等个人信息。</p>
     <div id="review-captcha"></div><p id="review-verification" class="review-muted"></p><p id="review-message" class="review-message" role="status"></p><section aria-label="同学评论" id="review-list"></section>`;
   document.body.append(dialog);
@@ -64,7 +88,9 @@ function makeDialog() {
 }
 async function submit(event,path) {
   event.preventDefault();
-  const form=event.currentTarget, button=form.querySelector('button[type="submit"]'), message=dialog.querySelector('#review-message');
+  const form=event.currentTarget;
+  const button=path==='comments' ? dialog.querySelector('button[form="comment-form"]') : form.querySelector('button[type="submit"]');
+  const message=dialog.querySelector('#review-message');
   if (dialog.dataset.busy==='true') return;
   const submittedContext={...context};
   const payload=Object.fromEntries(new FormData(form));
@@ -90,6 +116,7 @@ async function openReview(button) {
   dialog.querySelector('#rating-form').reset(); dialog.querySelector('#comment-form').reset(); dialog.querySelector('#review-list').textContent='';
   dialog.querySelector('#review-verification').innerHTML=configuration.provider==='recaptcha-v3' ? '本操作使用 Google reCAPTCHA，适用其<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">隐私政策</a>和<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">服务条款</a>。' : '本操作使用 Cloudflare Turnstile 人机验证。';
   dialog.showModal();
+  if (configuration.provider === 'recaptcha-v3') loadGoogleBadge().catch(() => {});
   try { await refresh(); } catch(error) { dialog.querySelector('#review-message').textContent=error.message; }
 }
 export async function initializeCommunity() {
