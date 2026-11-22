@@ -52,7 +52,7 @@ test('SQLite migrations, comments and ratings survive restart and online backup'
   await DB.prepare('INSERT INTO ratings(occurrence,dish_id,visitor,stars) VALUES(?,?,?,?)').bind('occ','dish','visitor',5).run();
   await DB.prepare('INSERT INTO comments(id,occurrence,dish_id,dish_name,visitor,nickname,content) VALUES(?,?,?,?,?,?,?)').bind('id','occ','dish','鸡肉','visitor','同学','不错').run();
   const reopened = openDatabase(filename);
-  assert.equal((await reopened.prepare('SELECT count(*) n FROM schema_migrations').first()).n,1);
+  assert.equal((await reopened.prepare('SELECT count(*) n FROM schema_migrations').first()).n,2);
   assert.equal((await reopened.prepare('SELECT stars FROM ratings').first()).stars,5);
   const source = new DatabaseSync(filename,{readOnly:true}); const destination = join(directory,'backup.sqlite');
   await backup(source,destination); source.close(); reopened.close();
@@ -83,4 +83,18 @@ test('VPS returns 413 for streamed oversized uploads and remains available', asy
   const response = await fetch(base+'/api/comments',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body,duplex:'half'});
   assert.equal(response.status,413); await response.text();
   assert.equal((await fetch(base+'/api/health')).status,200);
+});
+
+test('VPS counts anonymous page views and exposes them to the admin',async t=>{
+  const { base, env } = await fixture(t);
+  await (await fetch(base+'/')).text();
+  await new Promise(resolve=>setTimeout(resolve,150));
+  const response=await fetch(base+'/api/admin/stats',{headers:{Authorization:'Bearer '+env.MODERATION_SECRET}});
+  assert.equal(response.status,200);
+  const data=await response.json();
+  assert.equal(data.visitors.today,1);
+  assert.equal(data.visitors.todayViews,1);
+  assert.equal(data.visitors.days.length,14);
+  assert.equal(data.comments.pending,0);
+  assert.equal((await fetch(base+'/api/admin/stats')).status,401);
 });

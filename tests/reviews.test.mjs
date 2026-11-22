@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
-import { canonicalDish,handleRequest,verifyCaptcha } from '../server/reviews.mjs';
+import { canonicalDish,handleRequest,recordVisit,verifyCaptcha } from '../server/reviews.mjs';
 const origin='https://menu.example';
 const target={date:'2026-11-16',meal:'lunch',dish:'新疆大盘鸡'};
 const token='test-token-for-unit-tests';
-const schema=readFileSync(new URL('../migrations/0001_reviews.sql',import.meta.url),'utf8');
+const schema=readFileSync(new URL('../migrations/0001_reviews.sql',import.meta.url),'utf8')+readFileSync(new URL('../migrations/0002_visits.sql',import.meta.url),'utf8');
 function database() {
   const sqlite=new DatabaseSync(':memory:'); sqlite.exec(schema);
   function statement(sql,values=[]) { return { bind(...args){return statement(sql,args);}, async first(){return sqlite.prepare(sql).get(...values) || null;}, async all(){return {results:sqlite.prepare(sql).all(...values)};}, async run(){return {meta:{changes:sqlite.prepare(sql).run(...values).changes}};} }; }
@@ -105,4 +105,25 @@ test('Turnstile uses server validation and the action/hostname checks too',async
 });
 test('canonical dish name keeps cooking methods distinct while removing new-dish annotations',()=>{
   assert.equal(canonicalDish('莲藕红烧肉（新菜）'),'莲藕红烧肉');assert.notEqual(canonicalDish('红烧牛肉'),canonicalDish('酸汤牛肉'));
+});
+
+test('admin key failures are throttled while the right key still works',async()=>{
+  const env=environment(),bad={Authorization:'Bearer definitely-wrong-key'},good={Authorization:'Bearer '+env.MODERATION_SECRET};
+  for(let i=0;i<5;i++) assert.equal((await handleRequest(request('admin/comments',null,null,bad),env)).status,401);
+  assert.equal((await handleRequest(request('admin/comments',null,null,bad),env)).status,429);
+  const stats=await handleRequest(request('admin/stats',null,null,good),env);assert.equal(stats.status,200);
+  // A successful login clears the failure bucket.
+  assert.equal((await handleRequest(request('admin/comments',null,null,bad),env)).status,401);
+});
+test('anonymous visits are deduplicated per day and stats summarize them',async()=>{
+  const env=environment(),headers={Authorization:'Bearer '+env.MODERATION_SECRET};
+  await recordVisit(env,{headers:{'user-agent':'unit-browser'}});
+  await recordVisit(env,{headers:{'user-agent':'unit-browser'}});
+  await recordVisit(env,{headers:{'user-agent':'another-browser'}});
+  const stats=await (await handleRequest(request('admin/stats',null,null,headers),env)).json();
+  assert.equal(stats.visitors.today,2);assert.equal(stats.visitors.todayViews,3);
+  assert.equal(stats.visitors.days.length,14);
+  assert.deepEqual(stats.ratings.distribution.map(star=>star.count),[0,0,0,0,0]);
+  assert.equal(stats.comments.pending,0);assert.equal(stats.comments.total,0);
+  assert.ok(Array.isArray(stats.topDishes));
 });

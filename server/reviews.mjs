@@ -103,10 +103,93 @@ function cleanText(value, maximum, label) {
   if (!text || [...text].length > maximum || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(text)) fail(400, `${label}不能为空，且最多 ${maximum} 字。`);
   return text;
 }
+const utcDay = offsetDays => new Date(Date.now() - offsetDays * 86400000).toISOString().slice(0, 10);
+
+// Count one anonymous homepage view per visitor per UTC day. The visitor hash
+// rotates daily and no IP address or user agent is persisted.
+export async function recordVisit(env, request) {
+  const db = env?.DB;
+  if (!db || !env.SESSION_SECRET) return;
+  const headers = request.headers || {};
+  const address = request.socket?.remoteAddress || headers['x-real-ip'] || '';
+  const agent = headers['user-agent'] || '';
+  const day = utcDay(0), now = new Date().toISOString();
+  const visitor = await mac(env.SESSION_SECRET, `visit:${day}:${address}:${agent}`);
+  await db.prepare(`INSERT INTO visits(day,visitor,views,first_seen,last_seen) VALUES(?,?,1,?,?)
+    ON CONFLICT(day,visitor) DO UPDATE SET views=views+1,last_seen=excluded.last_seen`).bind(day, visitor, now, now).run();
+}
+
+async function stats(env, days = 14) {
+  const today = utcDay(0), start = utcDay(days - 1), month = utcDay(29);
+  const daily = (await env.DB.prepare(`SELECT day,count(*) AS visitors,coalesce(sum(views),0) AS views
+    FROM visits WHERE day>=? GROUP BY day ORDER BY day`).bind(start).all()).results;
+  const byDay = new Map(daily.map(row => [row.day, row]));
+  const todayVisits = await env.DB.prepare('SELECT count(*) AS visitors,coalesce(sum(views),0) AS views FROM visits WHERE day=?').bind(today).first();
+  const ratingSummary = await env.DB.prepare('SELECT count(*) AS total,round(avg(stars),1) AS average FROM ratings').first();
+  const todayRatings = await env.DB.prepare('SELECT count(*) AS n FROM ratings WHERE substr(created_at,1,10)=?').bind(today).first();
+  const distribution = (await env.DB.prepare('SELECT stars,count(*) AS count FROM ratings GROUP BY stars').all()).results;
+  const statuses = (await env.DB.prepare('SELECT status,count(*) AS count FROM comments GROUP BY status').all()).results;
+  const todayComments = await env.DB.prepare('SELECT count(*) AS n FROM comments WHERE substr(created_at,1,10)=?').bind(today).first();
+  const topDishes = (await env.DB.prepare(`SELECT dish_id,count(*) AS count,round(avg(stars),1) AS average
+    FROM ratings WHERE created_at>=? GROUP BY dish_id ORDER BY count DESC,average DESC LIMIT 8`).bind(month).all()).results;
+  const topComments = (await env.DB.prepare(`SELECT dish_name AS name,count(*) AS count FROM comments
+    WHERE created_at>=? GROUP BY dish_name ORDER BY count DESC LIMIT 8`).bind(month).all()).results;
+  const names = await dishIndex();
+  const counts = new Map(statuses.map(row => [row.status, row.count]));
+  const stars = new Map(distribution.map(row => [row.stars, row.count]));
+  const series = [];
+  for (let offset = days - 1; offset >= 0; offset -= 1) {
+    const day = utcDay(offset), row = byDay.get(day);
+    series.push({ day, visitors: row?.visitors || 0, views: row?.views || 0 });
+  }
+  await env.DB.prepare('DELETE FROM visits WHERE day<?').bind(utcDay(400)).run();
+  return {
+    generatedAt: new Date().toISOString(),
+    visitors: { today: todayVisits.visitors, todayViews: todayVisits.views, days: series },
+    ratings: { total: ratingSummary.total, average: ratingSummary.average, today: todayRatings.n,
+      distribution: [5,4,3,2,1].map(value => ({ stars: value, count: stars.get(value) || 0 })) },
+    comments: { total: (counts.get('pending') || 0) + (counts.get('approved') || 0) + (counts.get('rejected') || 0),
+      pending: counts.get('pending') || 0, approved: counts.get('approved') || 0,
+      rejected: counts.get('rejected') || 0, today: todayComments.n },
+    topDishes: topDishes.map(row => ({ name: names.get(row.dish_id) || '未知菜品', count: row.count, average: row.average })),
+    topComments,
+  };
+}
+
+let dishIndexPromise;
+function dishIndex() {
+  // Map stored SHA-256 dish ids back to human names once, on first stats request.
+  dishIndexPromise ||= (async () => {
+    const map = new Map();
+    for (const name of new Set(catalogue.values())) map.set(await digest(name), name);
+    return map;
+  })().catch(error => { dishIndexPromise = undefined; throw error; });
+  return dishIndexPromise;
+}
+
 async function admin(request, env, path) {
   if (!env.MODERATION_SECRET || env.MODERATION_SECRET.length < 32) fail(503, '评论管理尚未配置。');
   const supplied = request.headers.get('Authorization')?.replace(/^Bearer /,'') || '';
-  if (await digest(supplied) !== await digest(env.MODERATION_SECRET)) fail(401, '管理员验证失败。');
+  // Throttle wrong keys per client: five failures per 15 minutes, then 429.
+  // A correct key is still accepted while throttled so an attacker cannot lock
+  // the owner out, and it clears the failure bucket.
+  const address = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP') || 'unknown';
+  const bucket = `admin-fail:${await mac(env.SESSION_SECRET || env.MODERATION_SECRET, `admin:${address}`)}`;
+  const duration = 15 * 60 * 1000, maximum = 5;
+  const windowStart = Math.floor(Date.now() / duration) * duration;
+  const failures = await env.DB.prepare('SELECT count FROM request_limits WHERE bucket=? AND window_start=?').bind(bucket, windowStart).first();
+  if (await digest(supplied) !== await digest(env.MODERATION_SECRET)) {
+    if (Number(failures?.count || 0) >= maximum) fail(429, '尝试次数过多，请 15 分钟后再试。');
+    await env.DB.prepare(`INSERT INTO request_limits(bucket,window_start,count) VALUES(?,?,1)
+      ON CONFLICT(bucket,window_start) DO UPDATE SET count=count+1`).bind(bucket, windowStart).run();
+    fail(401, '管理员验证失败。');
+  }
+  if (failures) await env.DB.prepare('DELETE FROM request_limits WHERE bucket=?').bind(bucket).run();
+  await env.DB.prepare('DELETE FROM request_limits WHERE window_start<?').bind(Date.now() - 2 * 86400000).run();
+  if (path === 'admin/stats' && request.method === 'GET') {
+    const days = Math.min(90, Math.max(1, Number(new URL(request.url).searchParams.get('days')) || 14));
+    return json(await stats(env, days));
+  }
   if (path === 'admin/comments' && request.method === 'GET') {
     const { results } = await env.DB.prepare("SELECT id,occurrence,dish_name,nickname,content,created_at FROM comments WHERE status='pending' ORDER BY created_at LIMIT 50").all();
     return json({ comments:results });

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { isIP } from 'node:net';
-import { handleRequest } from './reviews.mjs';
+import { handleRequest, recordVisit } from './reviews.mjs';
 import { openDatabase } from './sqlite.mjs';
 
 const docs = fileURLToPath(new URL('../docs/', import.meta.url));
@@ -73,6 +73,10 @@ export function createApp({ origin, env, trustProxy = false, fetcher = fetch, st
       if (!actual.startsWith(root + sep)) return plain(404, 'Not found');
       const info = await stat(actual);
       if (!info.isFile()) return plain(404, 'Not found');
+      // Count real page views only; the admin page and static assets are skipped.
+      if (incoming.method === 'GET' && extname(filename) === '.html' && pathname !== '/moderate.html') {
+        recordVisit(env, incoming).catch(() => {});
+      }
       outgoing.writeHead(200, { 'Content-Type':types[extname(filename)], 'Content-Length':info.size, 'Cache-Control':'no-cache', 'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'strict-origin-when-cross-origin' });
       if (incoming.method === 'HEAD') outgoing.end();
       else await pipeline(createReadStream(actual), outgoing);

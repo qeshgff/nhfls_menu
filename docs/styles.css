@@ -319,3 +319,26 @@ footer small br { display:none; }
 #moderation-login { display:grid; gap:10px; margin:25px 0; }
 #moderation-login input { padding:12px; border:1px solid var(--line); border-radius:12px; }
 #moderation-login .community-submit { justify-self:start; }
+.moderation-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:20px 0 6px; }
+.moderation-auto { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+.moderation-updated { margin-left:auto; font-size:11px; color:var(--muted); }
+#moderation-message { min-height:1.6em; }
+.stats-panel { margin:26px 0 30px; padding-top:18px; border-top:1px solid var(--line); }
+.stats-panel h2 { font-size:18px; margin-bottom:14px; }
+.stats-panel h3 { font-size:13px; margin:20px 0 8px; color:var(--muted); }
+.stats-panel h4 { font-size:12px; margin-bottom:6px; color:var(--muted); font-weight:600; }
+.stats-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:10px; }
+.stats-card { border:1px solid var(--line); border-radius:12px; padding:12px 13px; background:var(--paper); }
+.stats-card strong { display:block; font-size:21px; line-height:1.3; }
+.stats-card span { font-size:11px; color:var(--muted); }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+.stats-row { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:11px; }
+.stats-row time { flex:0 0 52px; color:var(--muted); }
+.stats-row .bar { flex:1; height:8px; border-radius:999px; background:var(--line); overflow:hidden; }
+.stats-row .bar i { display:block; height:100%; border-radius:999px; background:var(--green); }
+.stats-row b { flex:0 0 auto; min-width:74px; text-align:right; font-weight:600; white-space:nowrap; }
+.stats-dish { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed var(--line); font-size:12px; }
+.stats-dish span { overflow-wrap:anywhere; }
+.stats-dish b { color:var(--muted); font-weight:500; white-space:nowrap; }
+.stats-note { margin-top:14px; font-size:11px; color:var(--muted); }
+@media(max-width:640px) { .stats-grid { grid-template-columns:1fr; } .moderation-updated { margin-left:0; width:100%; } }

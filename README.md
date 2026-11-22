@@ -24,6 +24,26 @@
 
 详细步骤见 [Cloudflare Workers 部署指南](deploy/cloudflare.md)。评论默认审核后公开，审核入口为 `/moderate.html`。原 GitHub Pages 仍可静态查看菜谱。
 
+## 评论审核与后台统计
+
+审核入口为 `/moderate.html`，使用环境变量 `MODERATION_SECRET` 登录。密钥只保留在页面内存，退出或整页刷新后清除。
+
+- **页面内刷新**：点「刷新数据」直接重新拉取待审核评论和统计，不需要整页刷新、也不用重新输入密钥；可勾选「每 30 秒自动刷新」持续挂着审核。
+- **统计面板**：今日访客 / 浏览次数、待审核与已公开评论、累计评分与平均分、近 14 天访问趋势、评分分布，以及近 30 天「评分最多 / 评论最多」菜品。
+- **登录限流**：同一客户端 15 分钟内最多 5 次错误密钥，之后返回 `429`；输入正确密钥仍可进入并清空失败计数，避免被他人故意输错锁死。
+
+管理接口都需要请求头 `Authorization: Bearer <MODERATION_SECRET>`：
+
+| 接口 | 说明 |
+| --- | --- |
+| `GET /api/admin/comments` | 最近 50 条待审核评论 |
+| `POST /api/admin/comments` | 传 `{"id":"评论ID","status":"approved"}` 或 `"rejected"` |
+| `GET /api/admin/stats?days=14` | 访问与互动统计，`days` 取 1—90 |
+
+访问量按「UTC 日期 + 匿名访客哈希」去重累计，哈希为 `HMAC(SESSION_SECRET, 日期:IP:UA)`，每天轮换；**不保存 IP 地址或 User-Agent**。只统计首页 HTML 请求，不含管理页与静态资源。
+
+通过 Nginx / Caddy 等反向代理部署时，必须把 `X-Real-IP` 覆盖为真实客户端地址（仓库内的 [deploy/Caddyfile](deploy/Caddyfile) 和 VPS 指南的 Nginx 示例都已处理），否则所有访客会被当成同一个 IP，登录限流和提交限流都会失效。
+
 ## 架构
 
 - `docs/`：无需构建的静态网站，HTML / CSS / JavaScript，菜谱静态资源本地托管，不依赖外部字体 CDN 或浏览器抓取代理；评价提交时按需加载配置的验证码服务。

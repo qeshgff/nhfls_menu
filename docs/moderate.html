@@ -1,5 +1,14 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>评论审核 · 河外饭点</title><link rel="stylesheet" href="./styles.css"><script type="module" src="./moderation.mjs"></script></head>
-<body><main class="moderation-page"><a href="./">← 返回菜谱</a><h1>评论审核</h1><p>输入管理员密钥后查看待审核评论。密钥只保留在当前页面内存，刷新或退出后清除。</p>
-<form id="moderation-login"><label for="moderation-key">管理员密钥</label><input id="moderation-key" type="password" autocomplete="off" required><button class="community-submit" type="submit">查看待审核评论</button></form>
-<button type="button" id="moderation-logout" class="quiet-button" hidden>退出管理</button><p id="moderation-message" role="status"></p><div id="moderation-list"></div></main></body></html>
+<body><main class="moderation-page"><a href="./">← 返回菜谱</a><h1>评论审核</h1>
+<p>输入管理员密钥后审核评论并查看统计。密钥只保留在当前页面内存，刷新页面或退出后清除；页面内可随时点「刷新数据」更新，无需刷新整个页面。</p>
+<form id="moderation-login"><label for="moderation-key">管理员密钥</label><input id="moderation-key" type="password" autocomplete="off" required><button class="community-submit" type="submit">进入管理</button></form>
+<p id="moderation-message" role="status"></p>
+<section id="moderation-panel" hidden>
+<div class="moderation-toolbar"><button type="button" id="moderation-refresh" class="community-submit">刷新数据</button><label class="moderation-auto"><input type="checkbox" id="moderation-auto"> 每 30 秒自动刷新</label><span id="moderation-updated" class="moderation-updated"></span><button type="button" id="moderation-logout" class="quiet-button">退出管理</button></div>
+<section class="stats-panel"><h2>访问与互动统计</h2><div id="stats-cards" class="stats-cards"></div>
+<div class="stats-grid"><div><h3>近 14 天访问</h3><div id="stats-daily" class="stats-daily"></div></div><div><h3>评分分布</h3><div id="stats-stars" class="stats-stars"></div></div></div>
+<h3>热门菜品（近 30 天）</h3><div id="stats-dishes" class="stats-dishes"></div>
+<p class="stats-note">访问量按每日去重访客统计（匿名哈希），不保存 IP 地址。</p></section>
+<section><h2>待审核评论</h2><div id="moderation-list"></div></section>
+</section></main></body></html>
