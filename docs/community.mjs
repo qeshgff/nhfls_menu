@@ -43,11 +43,19 @@ function badgeSlot() {
 }
 async function loadGoogleBadge() {
   const google = await loadGoogle();
-  googleWidget ??= google.render(badgeSlot(), {
-    sitekey: configuration.siteKey,
-    size: 'invisible',
-    badge: 'bottomright',
-  });
+  if (googleWidget !== undefined) return googleWidget;
+  const slot = badgeSlot();
+  try {
+    googleWidget = google.render(slot, {
+      sitekey: configuration.siteKey,
+      size: 'invisible',
+      badge: 'bottomright',
+    });
+  } catch {
+    // Some builds reject the badge option; retry with the default placement.
+    slot.remove();
+    googleWidget = google.render(badgeSlot(), { sitekey: configuration.siteKey, size: 'invisible' });
+  }
   return googleWidget;
 }
 function updateCheckbox(verified, message) {
