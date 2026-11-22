@@ -34,12 +34,19 @@ async function loadGoogle() {
     });
   });
 }
+function badgeSlot() {
+  // Keep the v3 widget container out of the dialog so Google pins its badge to
+  // the page corner instead of pushing the rating button around.
+  let slot = document.getElementById('recaptcha-v3-badge');
+  if (!slot) { slot = document.createElement('div'); slot.id = 'recaptcha-v3-badge'; document.body.append(slot); }
+  return slot;
+}
 async function loadGoogleBadge() {
   const google = await loadGoogle();
-  googleWidget ??= google.render(dialog.querySelector('#review-google-badge'), {
+  googleWidget ??= google.render(badgeSlot(), {
     sitekey: configuration.siteKey,
     size: 'invisible',
-    badge: 'inline',
+    badge: 'bottomright',
   });
   return googleWidget;
 }
@@ -110,17 +117,15 @@ async function refresh() {
   if (selected) selected.checked=true;
 }
 function makeDialog() {
-  const badge = configuration.ratingsEnabled && configuration.provider === 'recaptcha-v3' ? '<div id="review-google-badge"></div>' : '';
   const checkbox = usesCheckbox();
   const commentEnabled = configuration.commentCaptcha.enabled;
-  const badgeByRating = checkbox || !commentEnabled;
   dialog=document.createElement('dialog'); dialog.className='review-dialog'; dialog.setAttribute('aria-labelledby','review-title');
   dialog.innerHTML=`<div class="review-header"><div><span class="eyebrow">同学们的饭后评价</span><h2 id="review-title"></h2><p id="review-context"></p></div><button type="button" class="icon-button" id="review-close" aria-label="关闭评价">×</button></div>
     <p id="review-summary" class="review-summary"></p>
-    <form id="rating-form" ${configuration.ratingsEnabled ? '' : 'hidden'}><fieldset><legend>这次吃起来怎么样？</legend><div class="rating-stars">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="stars" value="${n}" required><span>${n} ★</span></label>`).join('')}</div></fieldset><div class="comment-actions"><button type="submit" class="community-submit">提交评分</button>${badgeByRating ? badge : ''}</div></form>
+    <form id="rating-form" ${configuration.ratingsEnabled ? '' : 'hidden'}><fieldset><legend>这次吃起来怎么样？</legend><div class="rating-stars">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="stars" value="${n}" required><span>${n} ★</span></label>`).join('')}</div></fieldset><div class="comment-actions"><button type="submit" class="community-submit">提交评分</button></div></form>
     <section class="comment-section"><h3>说说这道菜</h3>${commentEnabled ? '' : '<p class="review-muted">评论验证暂未配置。</p>'}<form id="comment-form" ${commentEnabled ? '' : 'hidden'}><label for="review-nickname">昵称（选填）</label><input id="review-nickname" name="nickname" maxlength="20" placeholder="同学"><label for="review-content">评价</label><textarea id="review-content" name="content" maxlength="500" rows="3" placeholder="口味、份量，或这次有什么变化…" required></textarea></form>
     ${checkbox ? '<div id="comment-captcha"></div><p id="comment-captcha-status" class="review-muted" role="status"></p><button id="comment-captcha-retry" class="quiet-button" type="button" hidden>重新加载验证</button>' : ''}
-    <div class="comment-actions" ${commentEnabled ? '' : 'hidden'}><button id="comment-submit" type="submit" form="comment-form" class="community-submit" ${checkbox ? 'disabled' : ''}>${!badgeByRating && badge ? 'Google 验证并提交评论' : '提交评论'}</button>${badgeByRating ? '' : badge}</div></section>
+    <div class="comment-actions" ${commentEnabled ? '' : 'hidden'}><button id="comment-submit" type="submit" form="comment-form" class="community-submit" ${checkbox ? 'disabled' : ''}>提交评论</button></div></section>
     <p class="review-muted">每次评分和评论均需人机验证。评论审核后显示；同一浏览器对这次供餐的评分可以修改。请勿填写真实姓名、班级等个人信息。</p>
     <div id="review-captcha"></div><p id="review-verification" class="review-muted"></p><p id="review-message" class="review-message" role="status"></p><section aria-label="同学评论" id="review-list"></section>`;
   if (checkbox) {
