@@ -195,3 +195,17 @@ python3 scripts/fetch_menu.py \
 `docs/data/import-report.json` 记录目录遍历和逐周解析结果。原始官网页面和第 6 周图片可在补录任务的 Actions artifact 中核对（保留 7 天）。旧的 `tests/fixtures/reconstructed-week12.html` 仍只是初版重建测试夹具，不是原始网页存档。测试覆盖分页学期边界、图文来源校验、合并单元格、跨年、短周、跨自然周调休、缺餐/缺日期拒绝更新、失败保留旧数据和无变化不重复写入。
 
 用户日期按 `Asia/Shanghai` 计算。周末、未发布日期和旧数据会显示明确状态，不把旧菜单标成今天。尚未收录历史时，搜索仅覆盖已收录的数据。
+
+## 热量、食材与过敏原统计
+
+展开一道菜可查看热量估算和过敏原提示。午晚餐的基础套餐按一份大荤、一份小荤、两份素菜和汤计算，不含未公布的主食、用油、调味料，也不把所有特色餐合计到同一份套餐。三餐均可勾选实际菜品单独合计。只标成品重量时使用同类食品作参考。数据不足时标明仅有部分估算或无法估算，官网把食材合并列给多个选项时不拆分猜测用量。
+
+食材频次按官网记录计数，同一记录内同一种食材只算一次。只合并常见同义写法及错别字，保留不同切法和种类。过敏原区分食材表明确列出的信息和从名称推断的线索，不能从没有提示推断为安全。配方、调味料和共用器具请向食堂核实。
+
+参考资料为 [USDA SR28](https://www.ars.usda.gov/northeast-area/beltsville-md-bhnrc/beltsville-human-nutrition-research-center/methods-and-application-of-food-composition-laboratory/mafcl-site-pages/sr11-sr28)、香港食物安全中心的[营养资料查询](https://www.cfs.gov.hk/english/nutrient/fc-search3.php)、[点心](https://www.cfs.gov.hk/english/programme/programme_rafs/programme_rafs_n_01_02.html)和[粥粉面饭](https://www.cfs.gov.hk/english/programme/programme_rafs/programme_rafs_n_01_01_nvic.html)研究，以及 [FDA 主要食物过敏原说明](https://www.fda.gov/food/buy-store-serve-safe-food/food-allergies-what-you-need-know)。数据参考项的编号或报告名称列于 `docs/nutrition-reference.mjs`。
+
+## 许可证
+
+本项目自有的代码、抓取脚本与部署配置按 [PolyForm Noncommercial License 1.0.0](LICENSE) 发布。学校公开菜单、图片、第三方参考数据和依赖由各自来源及其条款管理。
+
+Required Notice: Copyright 2026 河外饭点项目贡献者 (https://github.com/qeshgff/nhfls_menu)

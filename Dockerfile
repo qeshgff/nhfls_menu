@@ -1,6 +1,7 @@
 FROM node:24-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=8787 DATABASE_PATH=/app/data/reviews.sqlite
+COPY LICENSE README.md ./
 COPY --chown=node:node docs ./docs
 COPY --chown=node:node server ./server
 COPY --chown=node:node migrations ./migrations

@@ -1,5 +1,7 @@
 **
 !Dockerfile
+!LICENSE
+!README.md
 !docs/
 !docs/**
 !server/
