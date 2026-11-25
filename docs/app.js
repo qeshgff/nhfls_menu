@@ -121,20 +121,37 @@ function updatePickedEnergy(input) {
   panel.querySelector('output').textContent = !picked.length ? '勾选你要吃的菜品。' : !value ? '选中的菜品暂无可估热量。' :
     `已选 ${picked.length} 道 · ${value.missing ? `已知部分 ${formatEnergy(value)} · ${value.missing} 道估算不完整` : formatEnergy(value)}${value.references ? ' · 含同类成品参考' : ''}`;
 }
+function chartBar(count, max, label, className = '') {
+  const width = 100 * count / max;
+  return `<div class="stats-chart-series ${className}"><span class="stats-chart-track" aria-hidden="true"><span style="width:${width}%"></span></span><span class="stats-chart-value"><span class="sr-only">${label}：</span>${count}<span class="sr-only"> 次</span></span></div>`;
+}
 function renderStatistics() {
   statistics ??= menuStatistics(data.weeks);
   const kind = $('stats-kind').value;
   const query = $('stats-query').value.trim().normalize('NFKC');
   const ingredientQuery = kind === 'ingredients' ? ingredientEntries(query)[0]?.name : '';
-  const results = statistics[kind].filter(([name]) => name.includes(query) || (ingredientQuery && name.includes(ingredientQuery)));
-  const pageSize = 24;
+  const rows = statistics[kind];
+  const results = rows.filter(([name]) => name.includes(query) || (ingredientQuery && name.includes(ingredientQuery)));
+  const compareAllergens = kind === 'allergens';
+  // Reuse the category's scale across searches and pages so bars remain comparable.
+  const highest = rows.reduce((max, [, count, possible]) => Math.max(max, count, possible ?? 0), 1);
+  const tickSize = Math.max(1, 10 ** Math.floor(Math.log10(highest / 4)) / 2);
+  const step = Math.ceil(highest / (4 * tickSize)) * tickSize;
+  const max = step * 4;
+  const pageSize = 12;
   const pages = Math.max(1, Math.ceil(results.length / pageSize));
   statsPage = Math.max(0, Math.min(statsPage, pages - 1));
   $('stats-coverage').textContent = `${data.weeks.length} 份周菜单 · ${statistics.days} 个供餐日 · ${statistics.rows.toLocaleString('zh-CN')} 条官网菜品记录`;
-  $('stats-head').innerHTML = kind === 'allergens' ? '<tr><th scope="col">过敏原</th><th scope="col">食材表次数</th><th scope="col">需核实次数</th></tr>' : `<tr><th scope="col">${kind === 'dishes' ? '菜品' : '食材'}</th><th scope="col">出现次数</th></tr>`;
-  $('stats-results').innerHTML = results.slice(statsPage * pageSize, (statsPage + 1) * pageSize).map(([name, count, possible]) => `<tr><th scope="row">${esc(name)}</th><td>${count}</td>${kind === 'allergens' ? `<td>${possible}</td>` : ''}</tr>`).join('');
+  $('stats-chart').hidden = results.length === 0;
+  $('stats-chart-title').textContent = { dishes:'菜品出现次数', ingredients:'食材出现次数', allergens:'过敏原提示次数' }[kind];
+  $('stats-legend').hidden = !compareAllergens;
+  $('stats-axis').innerHTML = Array.from({ length: 5 }, (_, tick) => `<span>${tick * step}</span>`).join('');
+  $('stats-results').innerHTML = results.slice(statsPage * pageSize, (statsPage + 1) * pageSize).map(([name, count, possible]) => {
+    const listed = chartBar(count, max, compareAllergens ? '食材表列出' : '出现');
+    return `<li class="stats-chart-item"><span class="stats-chart-label">${esc(name)}</span><div>${listed}${compareAllergens ? chartBar(possible, max, '需核实', 'stats-possible') : ''}</div></li>`;
+  }).join('');
   $('stats-empty').hidden = results.length > 0;
-  $('stats-page').textContent = `${results.length} 项 · 第 ${statsPage + 1} / ${pages} 页`;
+  $('stats-page').textContent = results.length ? `${results.length} 项 · 第 ${statsPage + 1} / ${pages} 页` : '0 项';
   $('stats-prev').disabled = statsPage === 0;
   $('stats-next').disabled = statsPage >= pages - 1;
 }

@@ -43,7 +43,15 @@
           <label for="stats-kind">统计项目 <select id="stats-kind"><option value="dishes">菜品频次</option><option value="ingredients">食材频次</option><option value="allergens">过敏原提示</option></select></label>
           <label for="stats-query">筛选名称 <input id="stats-query" type="search" placeholder="例如 鸡蛋、土豆" autocomplete="off"></label>
         </div>
-        <div class="stats-table-wrap"><table><thead id="stats-head"></thead><tbody id="stats-results"></tbody></table></div>
+        <figure class="stats-chart" id="stats-chart" aria-labelledby="stats-chart-title" hidden>
+          <figcaption><h2 id="stats-chart-title"></h2><span class="stats-chart-unit" aria-hidden="true">单位：次</span></figcaption>
+          <div class="stats-chart-legend" id="stats-legend" hidden>
+            <span class="stats-legend-key">食材表列出</span>
+            <span class="stats-legend-key stats-possible">需核实</span>
+          </div>
+          <div class="stats-chart-axis" aria-hidden="true"><div id="stats-axis"></div></div>
+          <ul class="stats-chart-items" id="stats-results" role="list"></ul>
+        </figure>
         <p id="stats-empty" hidden>没有匹配的项目。</p>
         <div class="stats-pagination"><button class="quiet-button" id="stats-prev">上一页</button><span id="stats-page" role="status"></span><button class="quiet-button" id="stats-next">下一页</button></div>
         <details class="stats-method"><summary>统计和热量怎么来的？</summary><p>同一条官网菜品记录里的同种食材只计一次。仅统计官网明确列出的食材，合并记录共用的食材只计一次。过敏原按食材表和菜名线索区分，配方不公开或有交叉接触时，仍需向食堂确认。</p><p>热量根据官网标注的重量，用参考值折算。部分成品使用同类食物类比。未公布的油、酱料及用量、骨头比例和实际打菜份量可能影响结果。</p><p>参考资料 <a href="https://www.ars.usda.gov/northeast-area/beltsville-md-bhnrc/beltsville-human-nutrition-research-center/methods-and-application-of-food-composition-laboratory/mafcl-site-pages/sr11-sr28" target="_blank" rel="noopener">USDA SR28</a> · <a href="https://www.cfs.gov.hk/english/programme/programme_rafs/programme_rafs_n_01_02.html" target="_blank" rel="noopener">香港食安中心点心数据</a> · <a href="https://www.cfs.gov.hk/english/programme/programme_rafs/programme_rafs_n_01_01_nvic.html" target="_blank" rel="noopener">粥粉面饭数据</a></p></details>
