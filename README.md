@@ -83,6 +83,10 @@ python3 -m http.server 8080 --directory docs
 
 打开 `http://localhost:8080`。请通过 HTTP 访问；直接双击 HTML 的 `file://` 方式无法正常加载 JSON 和 ES 模块。
 
+## 浏览器支持
+
+校园设备以 **Windows 11 + Microsoft Edge** 为主，项目按 Chromium 110+（Baseline 2023）实现：使用原生 `dialog`、`:has`、`inert`、`toReversed()` 等现代 API，不为 iOS/Safari 单独提供降级。若后续需要覆盖 iPhone/iPad，应重新评估这些特性的兼容性（尤其是 `toReversed()` 需要 Safari 16.4+）。
+
 ## 服务器定时同步
 
 在专用检出目录运行，不要和日常开发共用有未提交改动的工作区。以下命令以 Debian / Ubuntu 为例：

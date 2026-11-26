@@ -69,7 +69,7 @@ auto.addEventListener('change',()=>{
   else if(!auto.checked)stopAuto();
 });
 logout.addEventListener('click',()=>{
-  stopAuto();key='';list.innerHTML='';statsCards.innerHTML='';statsDaily.innerHTML='';statsStars.innerHTML='';statsDishes.innerHTML='';
+  stopAuto();key='';list.replaceChildren();statsCards.replaceChildren();statsDaily.replaceChildren();statsStars.replaceChildren();statsDishes.replaceChildren();
   updated.textContent='';message.textContent='已退出管理。';login.hidden=false;panel.hidden=true;
 });
 list.addEventListener('click',async event=>{

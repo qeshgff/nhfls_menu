@@ -158,7 +158,7 @@ function renderStatistics() {
 function initialize() {
   if (!data || data.schemaVersion !== 1 || !Array.isArray(data.weeks) || !data.weeks.length) throw new Error('菜单数据为空或版本不支持');
   data.weeks.sort((a, b) => a.start.localeCompare(b.start));
-  $('week-select').innerHTML = [...data.weeks].reverse().map(w => `<option value="${esc(w.id)}">${esc(w.label)} · ${shortDate(w.start)}—${shortDate(w.end)}</option>`).join('');
+  $('week-select').innerHTML = data.weeks.toReversed().map(w => `<option value="${esc(w.id)}">${esc(w.label)} · ${shortDate(w.start)}—${shortDate(w.end)}</option>`).join('');
   $('week-select').disabled = false;
   const selection = initialSelection(data.weeks, today);
   setWeek(selection.week.id, selection.date); setView('day');

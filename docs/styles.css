@@ -2,6 +2,7 @@
 :root {
   --bg:#f7f7f2; --paper:#fffefa; --ink:#253b32; --muted:#68776e;
   --green:#174b3b; --pale:#e8ede3; --line:#e1e5da; --amber:#ebc779; --radius:25px;
+  color-scheme:light;
   font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   color:var(--ink); background:var(--bg); font-synthesis:none;
 }
@@ -286,8 +287,8 @@ footer small br { display:none; }
 /* Community controls load only when the Cloudflare review API is configured. */
 .review-open { display:none; margin:4px 12px 10px; border:0; padding:7px 10px; border-radius:12px; background:#e9f1e7; color:var(--green); cursor:pointer; font:inherit; font-size:11px; }
 .has-community .review-open { display:inline-flex; }
-.review-dialog { width:min(650px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); overflow-y:auto; border:1px solid var(--line); border-radius:24px; padding:24px; background:var(--card,#fffefb); color:var(--ink); box-shadow:0 20px 90px #17392b30; }
-.review-dialog::backdrop { background:#16392b66; backdrop-filter:blur(3px); }
+.review-dialog { width:min(650px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); overflow-y:auto; overscroll-behavior:contain; border:1px solid var(--line); border-radius:24px; padding:24px; background:var(--card,#fffefb); color:var(--ink); box-shadow:0 20px 90px #17392b30; }
+.review-dialog::backdrop { background:#16392b66; backdrop-filter:blur(3px); overflow:hidden; overscroll-behavior:contain; }
 .review-checkbox[open] { position:fixed; inset:0; margin:auto; height:fit-content; z-index:1001; }
 .review-checkbox-overlay { display:none; position:fixed; inset:0; z-index:1000; background:#16392b66; backdrop-filter:blur(3px); }
 .review-checkbox-overlay:has(+ .review-checkbox[open]) { display:block; }
