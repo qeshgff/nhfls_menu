@@ -29,11 +29,11 @@ export async function refreshMenuRatings(root = ratingRoot) {
     for (const badge of badges) {
       const { ratingDate, ratingMeal, ratingDish } = badge.dataset;
       const score = scores.get(ratingKey(ratingDate, ratingMeal, ratingDish));
-      const average = score?.average.toFixed(1);
-      badge.textContent = score ? `★ ${average}` : '暂无评分';
-      badge.title = score ? `本次供餐平均 ${average} / 5（${score.count} 人评分）` : '本次供餐暂无评分';
+      if (!score) { badge.hidden = true; continue; }
+      const average = score.average.toFixed(1);
+      badge.textContent = `★ ${average}`;
+      badge.title = `本次供餐平均 ${average} / 5（${score.count} 人评分）`;
       badge.setAttribute('aria-label', badge.title);
-      badge.classList.toggle('unrated', !score);
       badge.hidden = false;
     }
   } catch {
