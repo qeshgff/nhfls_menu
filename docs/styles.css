@@ -83,12 +83,12 @@ main { max-width:1660px; margin:0 auto; padding:0 30px; }
 .dish-list { list-style:none; padding:4px 17px 8px; margin:0; }
 .dish-list > li { min-width:0; }
 .dish-list > li + li { border-top:1px solid #eef0e7; }
-.dish-list summary { font-size:13px; line-height:1.55; min-height:31px; padding:5px 0; cursor:pointer; list-style:none; display:flex; align-items:baseline; justify-content:space-between; gap:5px; overflow-wrap:anywhere; }
+.dish-list summary { font-size:13px; line-height:1.55; min-height:31px; padding:5px 0; cursor:pointer; list-style:none; display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"num name toggle" "num kcal toggle"; column-gap:5px; row-gap:1px; align-items:baseline; overflow-wrap:anywhere; }
 .dish-list summary::-webkit-details-marker { display:none; }
-.dish-list summary:after { content:"+"; font-size:13px; color:#a0ac96; flex-shrink:0; }
+.dish-list summary:after { content:"+"; font-size:13px; color:#a0ac96; grid-area:toggle; align-self:start; }
 .dish-list details[open] summary:after { content:"−"; }
-.dish-num { font-size:9px; color:#a0ac97; min-width:15px; display:inline-block; align-self:baseline; }
-.dish-name { flex:1; }
+.dish-num { font-size:9px; color:#a0ac97; min-width:15px; display:inline-block; align-self:baseline; grid-area:num; }
+.dish-name { grid-area:name; min-width:0; }
 .ingredients { display:flex; flex-wrap:wrap; gap:5px; list-style:none; padding:2px 0 10px 20px; margin:0; }
 .ingredient-tag { display:inline-flex; align-items:center; padding:4px 9px; border:1px solid #dce6d3; border-radius:999px; background:#eef4e7; color:#59714d; font-size:10px; line-height:1.35; overflow-wrap:anywhere; max-width:100%; }
 .ingredient-empty { margin:0 0 10px 20px; color:var(--muted); font-size:11px; }
@@ -350,7 +350,7 @@ body:has(.review-checkbox[open]) { overflow:hidden; }
 .stats-note { margin-top:14px; font-size:11px; color:var(--muted); }
 @media(max-width:640px) { .stats-grid { grid-template-columns:1fr; } .moderation-updated { margin-left:0; width:100%; } }
 
-.dish-kcal { flex:none; white-space:nowrap; font-size:9px; font-variant-numeric:tabular-nums; color:var(--green); }
+.dish-kcal { grid-area:kcal; justify-self:start; white-space:nowrap; font-size:9px; font-variant-numeric:tabular-nums; color:var(--green); }
 .dish-nutrition { margin:5px 0 9px; padding:7px 9px; border-radius:9px; background:#eef3e8; font-size:11px; line-height:1.6; }
 .dish-nutrition p { margin:0 0 4px; }
 .dish-nutrition small { display:block; font-size:10px; color:var(--muted); }
