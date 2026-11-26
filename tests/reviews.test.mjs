@@ -46,6 +46,24 @@ test('the same dish has distinct occurrence scores and an overall score',async()
   assert.equal((await send(env,'ratings',{...t,date:'2026-11-17',stars:3},cookie)).status,200);
   const data=await (await read(env,cookie,t)).json();assert.equal(data.summary.average,5);assert.deepEqual(data.overall,{count:2,average:4});
 });
+test('public menu rating summaries preserve date and meal without creating a session', async () => {
+  const env = environment();
+  const first = { date:'2026-11-16', meal:'breakfast', dish:'鲜肉包' };
+  const second = { ...first, date:'2026-11-17' };
+  for (const [dish, stars] of [[first, 5], [first, 4], [second, 2]]) {
+    assert.equal((await send(env,'ratings',{ ...dish, stars },await visitor(env))).status,200);
+  }
+  const params = new URLSearchParams([['date',first.date],['date',second.date],['date',first.date]]);
+  const response = await handleRequest(request('rating-summaries?' + params), { DB:env.DB });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Set-Cookie'), null);
+  const { summaries } = await response.json();
+  assert.deepEqual(summaries.sort((a,b) => a.date.localeCompare(b.date)), [
+    { ...first, count:2, average:4.5 }, { ...second, count:1, average:2 },
+  ]);
+  assert.deepEqual(await (await handleRequest(request('rating-summaries?date=2026-11-18'),env)).json(), { summaries:[] });
+  assert.equal((await handleRequest(request('rating-summaries?date=bad'),env)).status,400);
+});
 test('forged cookies cannot impersonate the visitor who rated',async()=>{
   const env=environment(),cookie=await visitor(env);await send(env,'ratings',{stars:4},cookie);
   const forged=cookie.slice(0,-1)+(cookie.endsWith('a')?'b':'a');

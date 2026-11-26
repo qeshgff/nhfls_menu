@@ -1,5 +1,6 @@
-import { escapeHtml as esc, MEALS, weekday } from './menu-utils.mjs';
+import { canonicalDish, escapeHtml as esc, MEALS, weekday } from './menu-utils.mjs';
 let configuration, dialog, context, refreshVersion = 0;
+let ratingRoot, ratingRequest;
 let googleLoading, googleWidget, commentWidget, turnstileLoading, turnstileId;
 let inertBackground = [], reviewTrigger;
 const usesCheckbox = () => configuration.commentCaptcha.enabled && configuration.commentCaptcha.provider === 'recaptcha-v2';
@@ -10,6 +11,34 @@ async function api(path, options = {}) {
   const data = await response.json();
   if (!response.ok) throw Error(data.error || '操作没有成功，请稍后再试。');
   return data;
+}
+const ratingKey = (date, meal, dish) => JSON.stringify([date, meal, canonicalDish(dish)]);
+export async function refreshMenuRatings(root = ratingRoot) {
+  ratingRoot = root;
+  ratingRequest?.abort();
+  const badges = [...(root?.querySelectorAll('[data-rating-dish]') || [])];
+  if (!badges.length) return;
+  const request = new AbortController();
+  ratingRequest = request;
+  const dates = [...new Set(badges.map(badge => badge.dataset.ratingDate))];
+  try {
+    const params = new URLSearchParams(dates.map(date => ['date', date]));
+    const { summaries } = await api(`rating-summaries?${params}`, { credentials:'omit', signal:request.signal });
+    if (request.signal.aborted) return;
+    const scores = new Map(summaries.map(row => [ratingKey(row.date, row.meal, row.dish), row]));
+    for (const badge of badges) {
+      const { ratingDate, ratingMeal, ratingDish } = badge.dataset;
+      const score = scores.get(ratingKey(ratingDate, ratingMeal, ratingDish));
+      const average = score?.average.toFixed(1);
+      badge.textContent = score ? `★ ${average}` : '暂无评分';
+      badge.title = score ? `本次供餐平均 ${average} / 5（${score.count} 人评分）` : '本次供餐暂无评分';
+      badge.setAttribute('aria-label', badge.title);
+      badge.classList.toggle('unrated', !score);
+      badge.hidden = false;
+    }
+  } catch {
+    // Static deployments and unavailable rating services leave the menu readable.
+  }
 }
 function script(url) {
   return new Promise((resolve,reject) => {
@@ -183,6 +212,7 @@ async function submit(event,path) {
     const token=checkbox ? checkboxToken : await captcha(path==='ratings'?'rate_dish':'comment_dish');
     if (!dialog.open || context!==submittedContext) return;
     const result=await api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...submittedContext,...payload,token})});
+    if (path==='ratings') refreshMenuRatings();
     if (!dialog.open || context!==submittedContext) return;
     if (path==='comments') form.querySelector('textarea').value='';
     message.textContent=result.message;

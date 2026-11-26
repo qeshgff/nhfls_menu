@@ -1,4 +1,5 @@
 export const MEALS = { breakfast: { name: '早餐', en: 'BREAKFAST', icon: '☀' }, lunch: { name: '午餐', en: 'LUNCH', icon: '♨' }, dinner: { name: '晚餐', en: 'DINNER', icon: '☾' } };
+export const canonicalDish = name => String(name).normalize('NFKC').replace(/\s+/gu, '').replace(/\(新菜\)/gu, '');
 export function chinaDate(now = new Date()) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now).map(p => [p.type, p.value]));
   return `${parts.year}-${parts.month}-${parts.day}`;

@@ -90,6 +90,8 @@ main { max-width:1660px; margin:0 auto; padding:0 30px; }
 .dish-list details[open] summary:after { content:"−"; }
 .dish-num { font-size:9px; color:#a0ac97; min-width:15px; display:inline-block; align-self:baseline; grid-area:num; }
 .dish-name { grid-area:name; min-width:0; }
+.dish-rating { display:inline-block; margin-inline-start:.5em; padding:0 .38em; border-radius:5px; background:#f5e9cf; color:#704714; font-size:.82em; font-weight:650; line-height:1.5; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.dish-rating.unrated { color:var(--muted); background:transparent; padding:0; font-weight:400; }
 .ingredients { display:flex; flex-wrap:wrap; gap:5px; list-style:none; padding:2px 0 10px 20px; margin:0; }
 .ingredient-tag { display:inline-flex; align-items:center; padding:4px 9px; border:1px solid #dce6d3; border-radius:999px; background:#eef4e7; color:#59714d; font-size:10px; line-height:1.35; overflow-wrap:anywhere; max-width:100%; }
 .ingredient-empty { margin:0 0 10px 20px; color:var(--muted); font-size:11px; }

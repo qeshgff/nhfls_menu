@@ -1,4 +1,4 @@
-import { initializeCommunity } from './community.mjs';
+import { initializeCommunity, refreshMenuRatings } from './community.mjs';
 import { MEALS, chinaDate, addDays, monday, dateStripStart, weekday, shortDate, weekContains, initialSelection, searchMenus, ingredientTags, mealGroups, escapeHtml as esc } from './menu-utils.mjs';
 import { analyzeDish, formatEnergy, ingredientEntries, mealEnergy, menuStatistics, selectedEnergy } from './nutrition.mjs';
 
@@ -21,7 +21,8 @@ function nutritionDetails({ energy, hints, reason }) {
 function dishes(items, context = {}) {
   return `<ul class="dish-list">${items.map((dish, i) => {
     const nutrition = analyzeDish(dish);
-    return `<li><details><summary><span class="dish-num">${String(i + 1).padStart(2, '0')}</span><span class="dish-name">${esc(dish.name)}</span>${nutrition.energy ? `<span class="dish-kcal" title="${nutrition.energy.missing.length ? '仅含可估食材' : '参考热量'}">${formatEnergy(nutrition.energy)}</span>` : ''}</summary>${dish.ingredientNote ? `<p class="ingredient-note">${esc(dish.ingredientNote)}</p>` : ''}${ingredients(dish.ingredients)}${nutritionDetails(nutrition)}${context.date ? `<button type="button" class="review-open" data-review-date="${esc(context.date)}" data-review-meal="${esc(context.meal)}" data-review-dish="${esc(dish.name)}">评分与同学评价 ↗</button>` : ''}</details></li>`;
+    const rating = context.date ? `<span class="dish-rating" data-rating-date="${esc(context.date)}" data-rating-meal="${esc(context.meal)}" data-rating-dish="${esc(dish.name)}" hidden></span>` : '';
+    return `<li><details><summary><span class="dish-num">${String(i + 1).padStart(2, '0')}</span><span class="dish-name">${esc(dish.name)}${rating}</span>${nutrition.energy ? `<span class="dish-kcal" title="${nutrition.energy.missing.length ? '仅含可估食材' : '参考热量'}">${formatEnergy(nutrition.energy)}</span>` : ''}</summary>${dish.ingredientNote ? `<p class="ingredient-note">${esc(dish.ingredientNote)}</p>` : ''}${ingredients(dish.ingredients)}${nutritionDetails(nutrition)}${context.date ? `<button type="button" class="review-open" data-review-date="${esc(context.date)}" data-review-meal="${esc(context.meal)}" data-review-dish="${esc(dish.name)}">评分与同学评价 ↗</button>` : ''}</details></li>`;
   }).join('')}</ul>`;
 }
 function mealNutrition(meal, items, date) {
@@ -45,6 +46,9 @@ function safeSource(url) {
   try { const u = new URL(url); return u.protocol === 'https:' && ['www.nhfls.com.cn', 'nhfls.com.cn'].includes(u.hostname) ? u.href : 'https://www.nhfls.com.cn/mzsp/list.htm'; }
   catch { return 'https://www.nhfls.com.cn/mzsp/list.htm'; }
 }
+function refreshVisibleRatings() {
+  refreshMenuRatings(view === 'day' || view === 'week' ? $(`${view}-view`) : null);
+}
 function setView(next) {
   view = next;
   document.querySelectorAll('[data-view]').forEach(el => { const active = el.dataset.view === view; el.classList.toggle('active', active); if (active) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
@@ -55,8 +59,9 @@ function setView(next) {
   $('intro').textContent = { day: '学校每周菜单，一眼就能找到。', week: '从周一到周五，提前看看每一顿的小期待。', search: '在已收录的菜单里，找找你喜欢的味道。', stats: '在已收录的菜单中，看看菜品、食材和过敏原提示出现了多少次。' }[view];
   if (view === 'search') renderSearch();
   if (view === 'stats') renderStatistics();
+  refreshVisibleRatings();
 }
-function setWeek(id, date) {
+function setWeek(id, date, nextView = view) {
   activeWeek = weekById(id);
   activeDate = date || activeWeek.days[0].date;
   $('week-select').value = id;
@@ -67,6 +72,7 @@ function setWeek(id, date) {
   const time = data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
   $('updated').textContent = `学校官网公开食谱${time ? ` · 收录于 ${time}` : ''}`;
   renderDates(); renderDay(); renderWeek(); renderStatus();
+  setView(nextView);
 }
 function renderStatus() {
   const el = $('status');
@@ -161,15 +167,15 @@ function initialize() {
   $('week-select').innerHTML = data.weeks.toReversed().map(w => `<option value="${esc(w.id)}">${esc(w.label)} · ${shortDate(w.start)}—${shortDate(w.end)}</option>`).join('');
   $('week-select').disabled = false;
   const selection = initialSelection(data.weeks, today);
-  setWeek(selection.week.id, selection.date); setView('day');
+  setWeek(selection.week.id, selection.date, 'day');
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
   $('week-select').addEventListener('change', e => setWeek(e.target.value));
   $('prev-week').addEventListener('click', () => setWeek(data.weeks[data.weeks.indexOf(activeWeek) - 1].id));
   $('next-week').addEventListener('click', () => setWeek(data.weeks[data.weeks.indexOf(activeWeek) + 1].id));
-  $('date-strip').addEventListener('click', e => { const button = e.target.closest('[data-date]'); if (!button) return; activeDate = button.dataset.date; renderDates(); renderDay(); });
-  $('go-today').addEventListener('click', () => { today = chinaDate(); const w = initialSelection(data.weeks, today).week; setWeek(w.id, today); setView('day'); });
-  $('meal-tabs').addEventListener('click', e => { const button = e.target.closest('[data-meal]'); if (!button) return; activeMeal = button.dataset.meal; $('meal-tabs').querySelectorAll('button').forEach(el => el.setAttribute('aria-pressed', String(el === button))); renderWeek(); });
-  $('main').addEventListener('click', e => { const button = e.target.closest('[data-jump-week]'); if (!button) return; setWeek(button.dataset.jumpWeek, button.dataset.jumpDate); setView('day'); $('main').scrollIntoView({ behavior: 'smooth' }); });
+  $('date-strip').addEventListener('click', e => { const button = e.target.closest('[data-date]'); if (!button) return; activeDate = button.dataset.date; renderDates(); renderDay(); refreshVisibleRatings(); });
+  $('go-today').addEventListener('click', () => { today = chinaDate(); const w = initialSelection(data.weeks, today).week; setWeek(w.id, today, 'day'); });
+  $('meal-tabs').addEventListener('click', e => { const button = e.target.closest('[data-meal]'); if (!button) return; activeMeal = button.dataset.meal; $('meal-tabs').querySelectorAll('button').forEach(el => el.setAttribute('aria-pressed', String(el === button))); renderWeek(); refreshVisibleRatings(); });
+  $('main').addEventListener('click', e => { const button = e.target.closest('[data-jump-week]'); if (!button) return; setWeek(button.dataset.jumpWeek, button.dataset.jumpDate, 'day'); $('main').scrollIntoView({ behavior: 'smooth' }); });
   $('search-input').addEventListener('input', renderSearch);
   $('main').addEventListener('change', e => { if (e.target.matches('[data-energy-option]')) updatePickedEnergy(e.target); });
   $('stats-kind').addEventListener('change', () => { statsPage = 0; renderStatistics(); });

@@ -1,9 +1,9 @@
 import menus from '../docs/data/menus.json' with { type: 'json' };
-import { mealGroups } from '../docs/menu-utils.mjs';
+import { canonicalDish, mealGroups } from '../docs/menu-utils.mjs';
+export { canonicalDish };
 
 const encoder = new TextEncoder();
 const catalogue = new Map();
-export const canonicalDish = name => String(name).normalize('NFKC').replace(/\s+/gu, '').replace(/\(新菜\)/gu, '');
 for (const week of menus.weeks) for (const day of week.days) for (const [meal, dishes] of Object.entries(day.meals)) {
   for (const dish of mealGroups(meal, dishes).flatMap(group => group.items)) {
     const name = canonicalDish(dish.name);
@@ -83,6 +83,23 @@ async function target(input) {
   if (!name) fail(404, '未找到这一天已公布的菜品。');
   const dishId = await digest(name);
   return { name, dishId, occurrence:`${date}|${meal}|${dishId}` };
+}
+async function ratingSummaries(params, db) {
+  const dates = new Set(params.getAll('date'));
+  if (!dates.size || dates.size > 14 || [...dates].some(date => !/^\d{4}-\d{2}-\d{2}$/.test(date))) fail(400, '请选择 1—14 个供餐日期。');
+  // Occurrence is indexed and starts with the date. Read the selected days in one query.
+  const ranges = [...dates].map(() => '(occurrence >= ? AND occurrence < ?)').join(' OR ');
+  const bounds = [...dates].flatMap(date => [date + '|', date + '|\uffff']);
+  const { results } = await db.prepare(`SELECT occurrence,count(*) AS count,round(avg(stars),1) AS average
+    FROM ratings WHERE ${ranges} GROUP BY occurrence`).bind(...bounds).all();
+  if (!results.length) return [];
+  const byOccurrence = new Map(results.map(row => [row.occurrence, row]));
+  const rated = await Promise.all([...catalogue].filter(([key]) => dates.has(key.slice(0, 10))).map(async ([key, dish]) => {
+    const [date, meal] = key.split('|');
+    const row = byOccurrence.get(`${date}|${meal}|${await digest(dish)}`);
+    return row && { date, meal, dish, count:row.count, average:row.average };
+  }));
+  return rated.filter(Boolean);
 }
 async function body(request) {
   if (!request.headers.get('Content-Type')?.startsWith('application/json')) fail(415, '请使用 JSON 提交。');
@@ -228,6 +245,9 @@ export async function handleRequest(request, env, fetcher = fetch) {
     if (!['GET','POST'].includes(request.method)) fail(405,'不支持的请求方式。');
     if (request.method === 'POST' && request.headers.get('Origin') !== url.origin) fail(403,'请从本站页面提交。');
     if (path.startsWith('admin/')) return await admin(request,env,path);
+    if (path === 'rating-summaries' && request.method === 'GET') {
+      return json({ summaries: await ratingSummaries(url.searchParams, env.DB) });
+    }
     if (path === 'reviews' && request.method === 'GET') {
       const item = await target(Object.fromEntries(url.searchParams));
       let visitor;
