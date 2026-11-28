@@ -16,7 +16,7 @@ function ingredients(value) {
 function nutritionDetails({ energy, hints, reason }) {
   const estimate = energy ? `${energy.missing.length ? '可估食材小计' : energy.kind === 'reference' ? '同类成品参考' : '按公布食材估算'} · ${formatEnergy(energy)}` : '热量暂无法估算';
   const note = energy?.missing.length ? `未计入：${energy.missing.join('、')}` : energy?.references?.join('、') || reason;
-  return `<div class="dish-nutrition"><p><strong>${esc(estimate)}</strong>${note ? `<small>${esc(note)}</small>` : ''}</p><div class="allergen-hints"><span>过敏原提示</span>${hints.length ? hints.map(hint => `<span class="allergen-chip" title="${esc(hint.evidence)}">${esc(hint.label)} · ${esc(hint.source)}</span>`).join('') : '<span>现有信息不足以排除过敏原</span>'}</div><small>需向食堂核实配方、调味料及共用器具。</small></div>`;
+  return `<div class="dish-nutrition"><p><strong>${esc(estimate)}</strong>${note ? `<small>${esc(note)}</small>` : ''}</p><div class="allergen-hints"><span>过敏原提示</span>${hints.length ? hints.map(hint => `<span class="allergen-chip" title="${esc(hint.evidence)}">${esc(hint.label)} · ${esc(hint.source)}</span>`).join('') : '<span>现有信息不足以排除过敏原</span>'}</div></div>`;
 }
 function dishes(items, context = {}) {
   return `<ul class="dish-list">${items.map((dish, i) => {

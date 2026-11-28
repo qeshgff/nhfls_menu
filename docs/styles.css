@@ -153,6 +153,7 @@ footer p { margin:0; display:flex; align-items:center; gap:6px; line-height:1.6;
 footer a { text-decoration:underline; text-underline-offset:3px; }
 footer small { flex-basis:100%; line-height:1.6; font-size:9px; color:#929b88; }
 footer small br { display:none; }
+footer .allergen-footer { font-size:inherit; color:var(--muted); }
 .mobile-nav { display:none; }
 .noscript { padding:30px; text-align:center; }
 @media (min-width:1200px) {
@@ -288,40 +289,64 @@ footer small br { display:none; }
 /* Community controls load only when the Cloudflare review API is configured. */
 .review-open { display:none; margin:4px 12px 10px; border:0; padding:7px 10px; border-radius:12px; background:#e9f1e7; color:var(--green); cursor:pointer; font:inherit; font-size:11px; }
 .has-community .review-open { display:inline-flex; }
-.review-dialog { width:min(650px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); overflow-y:auto; overscroll-behavior:contain; border:1px solid var(--line); border-radius:24px; padding:24px; background:var(--card,#fffefb); color:var(--ink); box-shadow:0 20px 90px #17392b30; }
+.review-dialog {
+  --review-gutter:clamp(.875rem, 2.3vmin, 1.5rem);
+  width:min(calc(100% - 1.5rem), clamp(26rem, 42vw, 38rem));
+  max-height:min(70dvh, 40rem);
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:clamp(1rem, 2.5vmin, 1.5rem);
+  padding:0;
+  background:var(--card,#fffefb);
+  color:var(--ink);
+  box-shadow:0 20px 90px #17392b30;
+  font-size:clamp(1rem, .85rem + .48vmin, 1.5rem);
+  line-height:1.5;
+}
+.review-dialog[open] { display:flex; flex-direction:column; }
 .review-dialog::backdrop { background:#16392b66; backdrop-filter:blur(3px); overflow:hidden; overscroll-behavior:contain; }
 .review-checkbox[open] { position:fixed; inset:0; margin:auto; height:fit-content; z-index:1001; }
 .review-checkbox-overlay { display:none; position:fixed; inset:0; z-index:1000; background:#16392b66; backdrop-filter:blur(3px); }
 .review-checkbox-overlay:has(+ .review-checkbox[open]) { display:block; }
-body:has(.review-checkbox[open]) { overflow:hidden; }
-.review-header { display:flex; justify-content:space-between; gap:15px; align-items:flex-start; }
-.review-header h2 { margin:7px 0; font-size:24px; }
-.review-header p,.review-summary { color:var(--muted); font-size:12px; }
-.review-dialog fieldset { border:0; padding:0; margin:18px 0 12px; }
-.review-dialog legend,.comment-section h3 { font-size:15px; font-weight:700; }
-.rating-stars { display:flex; gap:7px; margin-top:10px; }
-.rating-stars label { flex:1; }
+body:has(.review-dialog[open]) { overflow:hidden; }
+.review-header { flex:none; display:flex; justify-content:space-between; gap:.7em; align-items:flex-start; padding:var(--review-gutter); padding-bottom:.6em; border-bottom:1px solid var(--line); }
+.review-header > div { min-width:0; overflow-wrap:anywhere; }
+.review-header .eyebrow { font-size:.75em; }
+.review-header h2 { margin:.12em 0; font-size:1.45em; line-height:1.2; }
+.review-header p { margin:0; }
+.review-header p,.review-summary { color:var(--muted); font-size:.9em; }
+.review-header .icon-button { flex:none; width:max(2.5rem, 1.65em); height:max(2.5rem, 1.65em); font-size:1.3em; }
+.review-body { min-height:0; overflow:auto; overscroll-behavior:contain; padding:0 var(--review-gutter) var(--review-gutter); }
+.review-dialog fieldset { border:0; padding:0; margin:.85em 0 .65em; min-inline-size:0; }
+.review-dialog legend,.comment-section h3 { font-size:1em; font-weight:700; }
+.rating-stars { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:clamp(4px, .5vw, 8px); margin-top:.5em; }
 .rating-stars input { position:absolute; opacity:0; }
-.rating-stars span { display:block; text-align:center; padding:10px 4px; border:1px solid var(--line); border-radius:12px; color:var(--muted); cursor:pointer; }
+.rating-stars span { display:block; text-align:center; padding:.5em 1px; border:1px solid var(--line); border-radius:10px; color:var(--muted); cursor:pointer; white-space:nowrap; }
 .rating-stars input:checked + span { border-color:var(--green); background:#e9f1e7; color:var(--green); }
 .rating-stars input:focus-visible + span { outline:2px solid var(--green); outline-offset:3px; }
 .community-submit { border:0; border-radius:12px; padding:10px 16px; background:var(--green); color:white; font:inherit; cursor:pointer; }
 .community-submit:disabled { opacity:.6; cursor:wait; }
-.comment-section { margin-top:22px; border-top:1px solid var(--line); padding-top:5px; }
-.comment-section label { display:block; font-size:12px; margin:12px 0 6px; }
-.comment-section input,.comment-section textarea { width:100%; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); padding:10px 12px; font:inherit; font-size:13px; }
+.comment-section { margin-top:1em; border-top:1px solid var(--line); padding-top:.2em; }
+.comment-section h3 { margin:.5em 0; }
+.comment-section label { display:block; font-size:.9em; margin:.6em 0 .25em; }
+.comment-section input,.comment-section textarea { width:100%; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); padding:.45em .65em; font:inherit; }
 .comment-section textarea { resize:vertical; margin-bottom:10px; }
 .comment-actions:not([hidden]) { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
 #comment-captcha { overflow-x:auto; }
 #comment-submit:disabled { cursor:default; }
 .review-muted { font-size:11px; line-height:1.8; color:var(--muted); }
+.review-dialog .review-muted { font-size:.82em; line-height:1.6; }
 .review-muted a { text-decoration:underline; }
-.review-message { font-size:13px; line-height:1.7; color:var(--green); }
+.review-message { font-size:.9em; color:var(--green); }
 .student-comment { padding:13px 0; border-top:1px solid var(--line); }
 .student-comment > div { display:flex; justify-content:space-between; gap:10px; font-size:12px; }
 .student-comment time { color:var(--muted); }
 .student-comment p { font-size:13px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
-@media(max-width:760px) { .review-dialog { padding:18px; border-radius:20px; } .review-header h2 { font-size:21px; } }
+.review-dialog .student-comment > div { font-size:.85em; }
+.review-dialog .student-comment p { font-size:.95em; line-height:1.6; }
+@media (max-width:760px), (max-height:600px) {
+  .review-dialog { max-height:min(calc(100dvh - 1rem), 86dvh); }
+}
 @media print { .review-open,.review-dialog,.review-checkbox-overlay { display:none!important; } }
 .moderation-page { max-width:760px; margin:0 auto; padding:30px 20px; }
 .moderation-page > p { color:var(--muted); font-size:13px; line-height:1.8; }
@@ -397,3 +422,12 @@ body:has(.review-checkbox[open]) { overflow:hidden; }
   .mobile-nav button { flex:1; min-width:0; padding-inline:2px; gap:4px; white-space:nowrap; }
 }
 @media print { .nutrition-stats,.dish-kcal,.dish-nutrition,.meal-nutrition { display:none!important; } }
+
+@media screen and (min-width:1600px) and (min-height:850px) {
+  main { max-width:clamp(1660px, 74vw, 2360px); }
+  .hero h1 { font-size:clamp(2rem, 2vmin, 3rem); }
+  .section-head h2,.meal-head h3 { font-size:clamp(1.125rem, 1.15vmin, 1.5rem); }
+  .dish-list summary,.dish-group .dish-list summary,.meal-cards .meal-groups .dish-list summary,.week-day .dish-group .dish-list summary { font-size:clamp(.9375rem, .98vmin, 1.25rem); }
+  .dish-kcal,.ingredient-tag,.review-open,.meal-nutrition { font-size:clamp(.75rem, .75vmin, 1rem); }
+  footer,.allergen-footer { font-size:clamp(.75rem, .75vmin, 1rem); }
+}
