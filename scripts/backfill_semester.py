@@ -3,15 +3,13 @@
 import argparse
 import datetime as dt
 import json
-import hashlib
 from pathlib import Path
 import re
 import sys
 import time
-from urllib.request import Request, urlopen
 from urllib.parse import urljoin, urlsplit
 
-from fetch_menu import Document, INDEX, ROOT, clean, discover, download, parse_menu, period, save_weeks, source_url
+from fetch_menu import Document, INDEX, ROOT, clean, discover, download, parse_or_curated, read_image, save_weeks, source_url
 
 
 def semester_key(title):
@@ -62,44 +60,6 @@ def collect_links(target, fetch=download):
         time.sleep(0.5)
     return [], len(visited)
 
-
-_images = {}
-
-
-def read_image(url):
-    source_url(url)
-    if url not in _images:
-        with urlopen(Request(url, headers={'User-Agent': 'NHFLS-Menu/1.0'}), timeout=25) as response:
-            source_url(response.url)
-            raw = response.read(5_000_001)
-        if len(raw) > 5_000_000:
-            raise ValueError('菜谱图片超过 5 MB')
-        _images[url] = raw
-    return _images[url]
-
-
-def parse_or_curated(html, url, title, curated_dir=ROOT / 'scripts/curated'):
-    try:
-        return parse_menu(html, url, title)
-    except ValueError:
-        start, end = period(title)
-        path = curated_dir / f'{start.isoformat()}.json'
-        if not path.exists():
-            raise
-        record = json.loads(path.read_text('utf-8'))
-        week = record['week']
-        sources = {urljoin(url, image.attrs.get('original-src') or image.attrs.get('src', ''))
-                   for image in Document(html).root.nodes('img')}
-        if record['imageUrl'] not in sources or week['source'] != url:
-            raise ValueError('人工核对图片的来源与官网不一致')
-        if hashlib.sha256(read_image(record['imageUrl'])).hexdigest() != record['sha256']:
-            raise ValueError('官网菜谱图片已变化，需重新核对，保留旧数据')
-        expected_dates = [(start + dt.timedelta(days=i)).isoformat() for i in range((end-start).days+1)]
-        if week['start'] != str(start) or week['end'] != str(end) or [day['date'] for day in week['days']] != expected_dates:
-            raise ValueError('人工核对菜单日期不一致')
-        if any(not 2 <= len(day['meals'].get(meal, [])) <= 40 for day in week['days'] for meal in ['breakfast','lunch','dinner']):
-            raise ValueError('人工核对菜单餐次不完整')
-        return week
 
 
 def main():

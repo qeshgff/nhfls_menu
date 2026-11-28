@@ -1,8 +1,8 @@
 {
   "semester": "2026-2027-1",
-  "checkedAt": "2026-11-16T14:53:30+00:00",
+  "checkedAt": "2026-11-28T09:46:24+00:00",
   "catalogComplete": true,
-  "catalogPages": 2,
+  "catalogPages": 3,
   "discovered": [
     {
       "url": "https://www.nhfls.com.cn/2026/0831/c88a4881/page.htm",
@@ -63,6 +63,16 @@
       "url": "https://www.nhfls.com.cn/2026/1113/c88a4916/page.htm",
       "title": "南京河西外国语学校中学部2026-2027学年第一学期第12周食谱2026.11.16-11.20",
       "start": "2026-11-16"
+    },
+    {
+      "url": "https://www.nhfls.com.cn/2026/1120/c88a4922/page.htm",
+      "title": "南京河西外国语学校中学部2026-2027第一学期第13周食谱2026.11.23-11.27",
+      "start": "2026-11-23"
+    },
+    {
+      "url": "https://www.nhfls.com.cn/2026/1127/c88a4924/page.htm",
+      "title": "南京河西外国语学校中学部2026-2027第一学期第14周2026.11.30-12.4",
+      "start": "2026-11-30"
     }
   ],
   "imported": [
@@ -137,6 +147,18 @@
       "label": "第12周",
       "days": 5,
       "source": "https://www.nhfls.com.cn/2026/1113/c88a4916/page.htm"
+    },
+    {
+      "id": "2026-11-23",
+      "label": "第13周",
+      "days": 5,
+      "source": "https://www.nhfls.com.cn/2026/1120/c88a4922/page.htm"
+    },
+    {
+      "id": "2026-11-30",
+      "label": "第14周",
+      "days": 5,
+      "source": "https://www.nhfls.com.cn/2026/1127/c88a4924/page.htm"
     }
   ],
   "failed": []

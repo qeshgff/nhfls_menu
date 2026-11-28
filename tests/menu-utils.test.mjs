@@ -18,7 +18,8 @@ test('保留官网不完整信息，不猜测克重归属', () => {
   assert.deepEqual(ingredientTags('100g'), ['100g']);
   assert.deepEqual(ingredientTags(''), []);
 });
-const realWeek = JSON.parse(readFileSync(new URL('../docs/data/menus.json', import.meta.url), 'utf8')).weeks.find(w => w.id === '2026-11-16');
+const archive = JSON.parse(readFileSync(new URL('../docs/data/menus.json', import.meta.url), 'utf8')).weeks;
+const realWeek = archive.find(w => w.id === '2026-11-16');
 test('实际午餐按取餐规则分组，牛肉汤特色餐不误当套餐汤', () => {
   const groups = mealGroups('lunch', realWeek.days[2].meals.lunch);
   assert.deepEqual(groups.map(g => g.title), ['大荤', '小荤', '素菜', '特色餐', '汤']);
@@ -64,4 +65,41 @@ test('周日调休跨自然周时，每一天都能选择且优先精确日期',
   assert.equal(initialSelection([previous,holiday],'2026-09-19').week.id,previous.id);
   assert.equal(initialSelection([previous,holiday],'2026-09-25').date,'2026-09-25');
   assert.equal(weekContains(holiday,'2026-09-25'),true);
+});
+
+test('逐日核对后的糕点行不互换，特殊汤品仍归特色餐', () => {
+  const latePastryWeeks = [1, 2, 5, 7, 10, 13];
+  assert.equal(archive.length >= 14, true);
+  for (const [index, week] of archive.slice(0, 14).entries()) {
+    for (const day of week.days) {
+      const row = latePastryWeeks.includes(index + 1) ? 9 : 7;
+      const items = day.meals.dinner;
+      const groups = mealGroups('dinner', items);
+      assert.equal(groups.find(g => g.key === 'pastry').items[0], items[row], day.date);
+      assert.equal(groups.at(-1).items[0], items.at(-1), day.date);
+    }
+  }
+  const dinner = archive[1].days.find(d => d.date === '2026-09-10').meals.dinner;
+  const groups = mealGroups('dinner', dinner);
+  assert.equal(groups.find(g => g.key === 'pastry').items[0].name, '松子肉丁烧麦');
+  assert.ok(groups.find(g => g.key === 'specialty').items.some(d => d.name === '淮南牛肉汤'));
+});
+
+test('糕点行不明确时按原顺序展示可选菜，仍保留套餐分类', () => {
+  const items = realWeek.days[0].meals.dinner.map(({ name, ingredients }) => ({ name, ingredients }));
+  const groups = mealGroups('dinner', items);
+  assert.equal(groups.some(group => group.key === 'pastry'), false);
+  assert.deepEqual(groups.find(group => group.key === 'optional').items, items.slice(7, -1));
+  assert.equal(groups.at(-1).items[0], items.at(-1));
+});
+
+test('以空白分隔的两种面能分别搜索；官网第十二周现表优先', () => {
+  const day = archive[0].days.find(d => d.date === '2026-09-03');
+  const groups = mealGroups('lunch', day.meals.lunch);
+  const specials = groups.find(g => g.key === 'specialty').items;
+  assert.deepEqual(specials.map(d => d.name), ['番茄土豆牛腩面', '大肉面']);
+  assert.ok(specials.every(d => d.ingredientNote && d.ingredients));
+  assert.ok(searchMenus(archive, '大肉面').some(d => d.name === '大肉面' && d.date === day.date));
+  assert.equal(realWeek.days[0].meals.breakfast[8].name, '红糖馒头');
+  assert.equal(realWeek.days[4].meals.lunch[0].name, '红烧带鱼');
 });

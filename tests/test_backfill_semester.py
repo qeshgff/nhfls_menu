@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 from pathlib import Path
 import sys
@@ -8,6 +9,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 spec = importlib.util.spec_from_file_location('backfill', ROOT / 'scripts/backfill_semester.py')
 backfill = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(backfill)
+import fetch_menu
 
 
 def link(year, term, week, date, dept='中学部'):
@@ -51,11 +53,11 @@ class ImageMenuTests(unittest.TestCase):
         html = f'<img original-src="{record["imageUrl"]}">'
         class Digest:
             def hexdigest(self): return record['sha256']
-        with patch.object(backfill, 'read_image', return_value=b'official image'), patch.object(backfill.hashlib, 'sha256', return_value=Digest()):
+        with patch.object(fetch_menu, 'read_image', return_value=b'official image'), patch.object(hashlib, 'sha256', return_value=Digest()):
             week = backfill.parse_or_curated(html, record['week']['source'], record['week']['title'])
             self.assertEqual(len(week['days']), 3)
             self.assertEqual(sum(len(v) for day in week['days'] for v in day['meals'].values()), 90)
-        with patch.object(backfill, 'read_image', return_value=b'changed image'):
+        with patch.object(fetch_menu, 'read_image', return_value=b'changed image'):
             with self.assertRaisesRegex(ValueError, '图片已变化'):
                 backfill.parse_or_curated(html, record['week']['source'], record['week']['title'])
         with self.assertRaisesRegex(ValueError, '来源与官网不一致'):

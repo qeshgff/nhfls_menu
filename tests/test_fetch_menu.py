@@ -24,6 +24,41 @@ class MenuParserTests(unittest.TestCase):
         self.assertEqual(week['days'][1]['meals']['lunch'][0]['name'], '椒盐羊排')
         self.assertEqual(week['days'][4]['meals']['dinner'][0]['name'], '茶树菇烧鸭')
 
+    def test_week14_without_menu_keyword_uses_official_table(self):
+        title = '南京河西外国语学校中学部2026-2027第一学期第14周2026.11.30-12.4'
+        url = 'https://www.nhfls.com.cn/2026/1127/c88a4924/page.htm'
+        index = f'<a href="{url}" title="{title}">截断标题</a>'
+        index += f'<a href="/primary.htm">{title.replace("中学部", "小学部")}</a>'
+        index += '<a href="/news.htm">中学部活动安排2026.11.30-12.4</a>'
+        self.assertEqual(fetch.discover(index), [{'url': url, 'title': title, 'start': '2026-11-30'}])
+        html = (ROOT / 'tests/fixtures/official-week14-table.html').read_text('utf-8')
+        week = fetch.parse_menu(html, url)
+        self.assertEqual(week['title'], title)
+        self.assertEqual([d['date'] for d in week['days']], ['2026-11-30', '2026-12-01', '2026-12-02', '2026-12-03', '2026-12-04'])
+        self.assertEqual([len(rows) for rows in week['days'][0]['meals'].values()], [10, 9, 11])
+        self.assertEqual(week['days'][3]['meals']['dinner'][7]['name'], '葱香火腿蛋糕卷')
+        self.assertEqual(week['days'][3]['meals']['dinner'][7]['category'], 'pastry')
+        with self.assertRaises(ValueError):
+            fetch.parse_menu('<h1>' + title + '</h1>', url)
+
+    def test_wide_spaces_in_specialty_cell_preserve_two_names(self):
+        html = FIXTURE.replace('排骨面、大肉面', '排骨面 &nbsp;&nbsp;&nbsp;&nbsp;大肉面')
+        week = fetch.parse_menu(html, URL)
+        self.assertEqual(week['days'][3]['meals']['lunch'][7]['name'], '排骨面、大肉面')
+
+    def test_pastry_row_consensus_and_ambiguous_row(self):
+        def day(first, second, third):
+            names = ['其他菜'] * 7 + [first, second, third, '紫菜汤']
+            return {'meals': {'dinner': [{'name': name, 'ingredients': '110g'} for name in names]}}
+        days = [day('新疆大盘鸡刀削面', '三鲜炒米线', '大肉包'),
+                day('麻婆豆腐盖浇饭', '淮南牛肉汤', '松子肉丁烧麦')]
+        fetch.mark_pastry(days)
+        self.assertTrue(all(d['meals']['dinner'][9]['category'] == 'pastry' for d in days))
+        uncertain = [day('大肉包', '三鲜炒米线', '松子肉丁烧麦'),
+                     day('手抓饼', '三鲜炒米线', '葱香鸡蛋饼')]
+        fetch.mark_pastry(uncertain)
+        self.assertFalse(any('category' in item for d in uncertain for item in d['meals']['dinner']))
+
     def test_missing_meal_is_rejected(self):
         with self.assertRaises(ValueError):
             fetch.parse_menu(FIXTURE.replace('晚餐', '未知餐'), URL)

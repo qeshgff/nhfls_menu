@@ -23,8 +23,8 @@ export function searchMenus(weeks, query) {
   if (!q) return [];
   return weeks.flatMap(week => week.days.flatMap(day => Object.keys(MEALS).flatMap(meal => mealGroups(meal, day.meals[meal] || []).flatMap(group => group.items.filter(d => `${d.name} ${d.ingredients || ''}`.toLocaleLowerCase('zh-CN').includes(q)).map(d => ({ ...d, category: group.title, date: day.date, meal, week: week.id })))))).sort((a, b) => b.date.localeCompare(a.date));
 }
-// These positions follow the school's published table and the student's dining rules.
-// Never classify by dish-name keywords: a specialty beef soup is not the set-meal soup.
+// The first seven rows and the last row follow the dining rules. The importer
+// flags the bakery row; its location among the optional dinner dishes varies.
 export function mealGroups(meal, items) {
   if (meal === 'breakfast') return [{ key: 'breakfast', title: '早餐', rule: '', items }];
   const standard = (meal === 'lunch' && [9, 10].includes(items.length)) || (meal === 'dinner' && items.length === 11);
@@ -34,13 +34,22 @@ export function mealGroups(meal, items) {
     { key: 'side', title: '小荤', rule: '二选一', items: items.slice(3, 5) },
     { key: 'vegetable', title: '素菜', rule: '两种必选', items: items.slice(5, 7) },
   ];
-  const specialtyStart = meal === 'dinner' ? 8 : 7;
-  if (meal === 'dinner') groups.push({ key: 'pastry', title: '糕点', rule: '晚餐提供', items: items.slice(7, 8) });
-  const specialty = items.slice(specialtyStart, -1).flatMap(item => {
+  let optional = items.slice(7, -1);
+  if (meal === 'dinner') {
+    const pastries = optional.filter(item => item.category === 'pastry');
+    if (pastries.length === 1) {
+      groups.push({ key: 'pastry', title: '糕点', rule: '晚餐提供', items: pastries });
+      optional = optional.filter(item => item.category !== 'pastry');
+    } else {
+      groups.push({ key: 'optional', title: '特色餐与糕点', rule: '', items: optional });
+      optional = [];
+    }
+  }
+  const specialty = optional.flatMap(item => {
     const names = item.name.split(/[、，,；;]+/).map(name => name.trim()).filter(Boolean);
     return names.map(name => ({ ...item, name, ...(names.length > 1 ? { ingredientNote: '官网将这些特色餐合并列示食材，未分别标注用量。' } : {}) }));
   });
-  groups.push({ key: 'specialty', title: '特色餐', rule: '特色食堂', items: specialty });
+  if (specialty.length) groups.push({ key: 'specialty', title: '特色餐', rule: '特色食堂', items: specialty });
   groups.push({ key: 'soup', title: '汤', rule: '', items: items.slice(-1) });
   return groups;
 }
